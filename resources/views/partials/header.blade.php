@@ -1,5 +1,7 @@
 <div class="header">
 
+	  <form id="logout-form" method="POST" action="{{ route('logout') }}" class="d-none">@csrf</form>
+
 			<!-- Logo -->
 			<div class="header-left active">
 				<a href="{{ url('/') }}" class="logo logo-normal">
@@ -254,8 +256,8 @@
 								<img src="{{ asset('assets/img/profiles/avator1.jpg') }}" alt="" class="img-fluid">
 							</span>
 							<span class="user-detail">
-								<span class="user-name">John Smilga</span>
-								<span class="user-role">Super Admin</span>
+								<span class="user-name">{{ auth()->user()->name }}</span>
+								<span class="user-role">{{ ucfirst(auth()->user()->role) }}</span>
 							</span>
 						</span>
 					</a>
@@ -265,15 +267,16 @@
 								<span class="user-img"><img src="{{ asset('assets/img/profiles/avator1.jpg') }}" alt="">
 									<span class="status online"></span></span>
 								<div class="profilesets">
-									<h6>John Smilga</h6>
-									<h5>Super Admin</h5>
+									<h6>{{ auth()->user()->name }}</h6>
+									<h5> {{ ucfirst(auth()->user()->role) }}</h5>
 								</div>
 							</div>
 							<hr class="m-0">
 							<a class="dropdown-item" href="{{ url('/profile') }}"> <i class="me-2" data-feather="user"></i> My Profile</a>
 							<a class="dropdown-item" href="{{ url('/general-settings') }}"><i class="me-2" data-feather="settings"></i>Settings</a>
 							<hr class="m-0">
-							<a class="dropdown-item logout pb-0" href="{{ url('/signin') }}"><img src="{{ asset('assets/img/icons/log-out.svg') }}" class="me-2" alt="img">Logout</a>
+							  <a class="dropdown-item logout pb-0" href="#"
+     							onclick="event.preventDefault(); document.getElementById('logout-form').submit();">...Logout</a>
 						</div>
 					</div>
 				</li>
@@ -286,7 +289,8 @@
 				<div class="dropdown-menu dropdown-menu-right">
 					<a class="dropdown-item" href="{{ url('/profile') }}">My Profile</a>
 					<a class="dropdown-item" href="{{ url('/general-settings') }}">Settings</a>
-					<a class="dropdown-item" href="{{ url('/signin') }}">Logout</a>
+					  <a class="dropdown-item logout pb-0" href="#"
+     					onclick="event.preventDefault(); document.getElementById('logout-form').submit();">...Logout</a>
 				</div>
 			</div>
 			<!-- /Mobile Menu -->
