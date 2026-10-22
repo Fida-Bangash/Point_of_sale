@@ -79,7 +79,14 @@
                 <div class="login-wrapper signin-wrap">
                     <div class="login-content">
 
-                        <form action="#" id="signin-form" novalidate>
+                    @if (session('status'))
+                    <div class="alert alert-info">
+                         {{ session('status') }}
+                    </div>
+                    @endif
+
+                       <form method="POST" action="{{ url('/signin') }}" id="signin-form" novalidate>
+                            @csrf
                             <div class="login-userset">
                                 <div class="login-logo logo-normal">
                                     <img src="{{ asset('assets/img/logo.png') }}" alt="{{ config('app.name') }}">
@@ -97,22 +104,23 @@
                                 <div class="form-login">
                                     <label for="email">Email address</label>
                                     <div class="form-addons">
-                                        <input type="email" id="email" name="email" class="form-control"
-                                               placeholder="you@example.com" autocomplete="email">
+                                        <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                                               placeholder="you@example.com" autocomplete="email"
+                                                value ="{{ old('email') }}">
                                         <img src="{{ asset('assets/img/icons/mail.svg') }}" alt="">
                                     </div>
-                                    <span class="field-hint" data-for="email"></span>
+                                   <span class="field-hint bad" data-for="email">@error('email'){{ $message }}@enderror</span>
                                 </div>
 
                                 {{-- Password --}}
                                 <div class="form-login">
                                     <label for="password">Password</label>
                                     <div class="pass-group">
-                                        <input type="password" id="password" name="password" class="pass-input"
+                                        <input type="password" id="password" name="password" class="pass-input @error('password') is-invalid @enderror"
                                                autocomplete="current-password">
                                         <span class="fas toggle-password fa-eye-slash"></span>
                                     </div>
-                                    <span class="field-hint" data-for="password"></span>
+                                   <span class="field-hint bad" data-for="password">@error('password'){{ $message }}@enderror</span>
                                 </div>
 
                                 {{-- Remember me / Forgot password --}}
@@ -137,9 +145,14 @@
                                     <p class="form-status" id="form-status" aria-live="polite"></p>
                                 </div>
 
+                                @if ($canRegister)
                                 <div class="signinform text-center">
-                                    <h4>New here? <a href="{{ url('/register') }}" class="hover-a">Create an account</a></h4>
-                                </div>
+                                    <h4>New here?
+                                    <a href="{{ url('/register') }}" class="hover-a">Create an account</a>
+                                    </h4>
+                                </div>    
+                                @endif
+                                
 
                                 <!-- <div class="my-4 d-flex justify-content-center align-items-center copyright-text">
                                     <p>&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
@@ -162,30 +175,64 @@
         <script src="{{ asset('assets/js/theme-script.js') }}"></script>
         <script src="{{ asset('assets/js/script.js') }}"></script>
 
-        <script>
-            (function () {
-                var $ = function (id) { return document.getElementById(id); };
-                var form = $('signin-form');
-                var status = $('form-status');
+<script>
+    (function () {
+        var $ = function (id) {
+            return document.getElementById(id);
+        };
 
-                function setError(id, text) {
-                    var el = $(id);
-                    var hint = document.querySelector('.field-hint[data-for="' + id + '"]');
-                    el.classList.toggle('is-invalid', !!text);
-                    if (hint) { hint.textContent = text || ''; hint.className = 'field-hint' + (text ? ' bad' : ''); }
+        var form = $('signin-form');
+        var status = $('form-status');
+
+        function setError(id, text) {
+            var el = $(id);
+            var hint = document.querySelector(
+                '.field-hint[data-for="' + id + '"]'
+            );
+
+            if (el) {
+                el.classList.toggle('is-invalid', !!text);
+            }
+
+            if (hint) {
+                hint.textContent = text || '';
+                hint.className = 'field-hint' + (text ? ' bad' : '');
+            }
+        }
+
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                var valid = true;
+                var email = $('email').value.trim();
+                var password = $('password').value;
+
+                // Validate email format.
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    setError('email', 'Enter a valid email address.');
+                    valid = false;
+                } else {
+                    setError('email', '');
                 }
 
-                // Design preview only: checks the fields, does not sign anyone in
-                form.addEventListener('submit', function (e) {
+                // Validate password.
+                if (!password) {
+                    setError('password', 'Enter your password.');
+                    valid = false;
+                } else {
+                    setError('password', '');
+                }
+
+                // Stop submission only when validation fails.
+                if (!valid) {
                     e.preventDefault();
-                    var valid = true;
 
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('email').value.trim())) { setError('email', 'Enter a valid email address.'); valid = false; } else setError('email', '');
-                    if (!$('password').value) { setError('password', 'Enter your password.'); valid = false; } else setError('password', '');
-
-                    status.textContent = valid ? 'Form looks good. Sign in is not connected yet (design preview).' : '';
-                });
-            })();
-        </script>
+                    if (status) {
+                        status.textContent = '';
+                    }
+                }
+            });
+        }
+    })();
+</script>
     </body>
 </html>

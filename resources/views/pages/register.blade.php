@@ -100,7 +100,8 @@
                 <div class="login-wrapper register-wrap">
                     <div class="login-content">
 
-                        <form action="#" id="register-form" novalidate>
+                       <form method="POST" action="{{ url('/register') }}" id="register-form" novalidate>
+                            @csrf
                             <div class="login-userset">
                                 <div class="login-logo logo-normal">
                                     <img src="{{ asset('assets/img/logo.png') }}" alt="{{ config('app.name') }}">
@@ -119,10 +120,10 @@
                                     <label for="name">Full name</label>
                                     <div class="form-addons">
                                         <input type="text" id="name" name="name" class="form-control"
-                                               placeholder="e.g. Ahmed Khan" autocomplete="name">
+                                               placeholder="e.g. Ahmed Khan" autocomplete="name" value="{{ old('name') }}">
                                         <img src="{{ asset('assets/img/icons/user-icon.svg') }}" alt="">
                                     </div>
-                                    <span class="field-hint" data-for="name"></span>
+                                    <span class="field-hint bad" data-for="name">@error('name'){{ $message }}@enderror</span>
                                 </div>
 
                                 {{-- Email --}}
@@ -130,54 +131,18 @@
                                     <label for="email">Email address</label>
                                     <div class="form-addons">
                                         <input type="email" id="email" name="email" class="form-control"
-                                               placeholder="you@example.com" autocomplete="email">
+                                               placeholder="you@example.com" autocomplete="email" value="{{ old('email') }}">
                                         <img src="{{ asset('assets/img/icons/mail.svg') }}" alt="">
                                     </div>
-                                    <span class="field-hint" data-for="email"></span>
-                                </div>
-
-                                {{-- POS details --}}
-                                <div class="form-login">
-                                    <label for="shop_name">Shop / business name</label>
-                                    <input type="text" id="shop_name" name="shop_name" class="form-control"
-                                           placeholder="e.g. Khan General Store" autocomplete="organization">
-                                    <span class="field-hint" data-for="shop_name"></span>
+                             <span class="field-hint bad" data-for="email">@error('email'){{ $message }}@enderror</span>
                                 </div>
 
                                 <div class="row-2">
                                     <div class="form-login">
                                         <label for="phone">Phone number</label>
                                         <input type="tel" id="phone" name="phone" class="form-control"
-                                               placeholder="03XX XXXXXXX" autocomplete="tel">
-                                        <span class="field-hint" data-for="phone"></span>
-                                    </div>
-                                    <div class="form-login">
-                                        <label for="role">Your role</label>
-                                        <select id="role" name="role">
-                                            <option value="">Select role</option>
-                                            <option value="owner">Owner</option>
-                                            <option value="manager">Manager</option>
-                                            <option value="cashier">Cashier</option>
-                                            <option value="stock">Stock keeper</option>
-                                        </select>
-                                        <span class="field-hint" data-for="role"></span>
-                                    </div>
-                                </div>
-
-                                <div class="row-2">
-                                    <div class="form-login">
-                                        <label for="store">Store / branch</label>
-                                        <input type="text" id="store" name="store" class="form-control"
-                                               placeholder="e.g. Main branch">
-                                    </div>
-                                    <div class="form-login">
-                                        <label for="currency">Currency</label>
-                                        <select id="currency" name="currency">
-                                            <option value="PKR" selected>PKR - Rupee</option>
-                                            <option value="USD">USD - Dollar</option>
-                                            <option value="AED">AED - Dirham</option>
-                                            <option value="SAR">SAR - Riyal</option>
-                                        </select>
+                                               placeholder="03XX XXXXXXX" autocomplete="tel" value="{{ old('phone') }}">
+                                        <span class="field-hint bad" data-for="phone">@error('phone'){{ $message }}@enderror</span>
                                     </div>
                                 </div>
 
@@ -192,7 +157,7 @@
                                     <div class="strength" id="strength" data-level="0" aria-hidden="true">
                                         <span></span><span></span><span></span><span></span>
                                     </div>
-                                    <span class="field-hint" id="strength-text">Use at least 8 characters.</span>
+                                    <span class="field-hint bad" data-for="password">@error('password'){{ $message }}@enderror</span>
                                 </div>
 
                                 <div class="form-login">
@@ -244,69 +209,208 @@
         <script src="{{ asset('assets/js/theme-script.js') }}"></script>
         <script src="{{ asset('assets/js/script.js') }}"></script>
 
-        <script>
-            (function () {
-                var $ = function (id) { return document.getElementById(id); };
-                var form = $('register-form');
-                var pass = $('password');
-                var confirm = $('password_confirmation');
-                var meter = $('strength');
-                var meterText = $('strength-text');
-                var matchText = $('match-text');
-                var status = $('form-status');
-                var labels = ['Use at least 8 characters.', 'Weak', 'Fair', 'Good', 'Strong'];
+        ```html
+<script>
+    (function () {
+        'use strict';
 
-                function score(v) {
-                    var s = 0;
-                    if (v.length >= 8) s++;
-                    if (/[a-z]/.test(v) && /[A-Z]/.test(v)) s++;
-                    if (/\d/.test(v)) s++;
-                    if (/[^A-Za-z0-9]/.test(v) || v.length >= 12) s++;
-                    return v.length ? Math.max(s, 1) : 0;
-                }
+        var $ = function (id) {
+            return document.getElementById(id);
+        };
 
-                function checkMatch() {
-                    if (!confirm.value) { matchText.textContent = ''; matchText.className = 'field-hint'; return false; }
-                    var ok = confirm.value === pass.value;
-                    matchText.textContent = ok ? 'Passwords match.' : 'Passwords do not match.';
-                    matchText.className = 'field-hint ' + (ok ? 'ok' : 'bad');
-                    return ok;
-                }
+        var form = $('register-form');
+        var pass = $('password');
+        var confirmPassword = $('password_confirmation');
+        var meter = $('strength');
+        var meterText = $('strength-text');
+        var matchText = $('match-text');
+        var status = $('form-status');
 
-                pass.addEventListener('input', function () {
-                    var s = score(pass.value);
-                    meter.setAttribute('data-level', s);
-                    meterText.textContent = labels[s];
+        var labels = [
+            'Use at least 8 characters.',
+            'Weak',
+            'Fair',
+            'Good',
+            'Strong'
+        ];
+
+        // Stop if the registration form is not on this page.
+        if (!form) {
+            return;
+        }
+
+        // Calculate password strength.
+        function score(value) {
+            var points = 0;
+
+            if (value.length >= 8) points++;
+            if (/[a-z]/.test(value) && /[A-Z]/.test(value)) points++;
+            if (/\d/.test(value)) points++;
+            if (/[^A-Za-z0-9]/.test(value) || value.length >= 12) points++;
+
+            return value.length ? Math.max(points, 1) : 0;
+        }
+
+        // Show validation errors beside fields.
+        function setError(id, message) {
+            var element = $(id);
+            var hint = document.querySelector(
+                '.field-hint[data-for="' + id + '"]'
+            );
+
+            if (element) {
+                element.classList.toggle('is-invalid', !!message);
+                element.setAttribute('aria-invalid', message ? 'true' : 'false');
+            }
+
+            if (hint) {
+                hint.textContent = message || '';
+                hint.className = 'field-hint' + (message ? ' bad' : '');
+            }
+        }
+
+        // Update password strength indicator.
+        function updateStrength() {
+            if (!pass) return 0;
+
+            var value = pass.value;
+            var strength = score(value);
+
+            if (meter) {
+                meter.setAttribute('data-level', strength);
+            }
+
+            if (meterText) {
+                meterText.textContent = value
+                    ? labels[strength]
+                    : labels[0];
+
+                meterText.className = 'field-hint';
+            }
+
+            return strength;
+        }
+
+        // Check whether both passwords match.
+        function checkMatch() {
+            if (!pass || !confirmPassword || !matchText) {
+                return false;
+            }
+
+            if (!confirmPassword.value) {
+                matchText.textContent = '';
+                matchText.className = 'field-hint';
+                return false;
+            }
+
+            var matches = confirmPassword.value === pass.value;
+
+            matchText.textContent = matches
+                ? 'Passwords match.'
+                : 'Passwords do not match.';
+
+            matchText.className =
+                'field-hint ' + (matches ? 'ok' : 'bad');
+
+            return matches;
+        }
+
+        // Validate fields while the user types.
+        if (pass) {
+            pass.addEventListener('input', function () {
+                updateStrength();
+
+                if (confirmPassword && confirmPassword.value) {
                     checkMatch();
-                });
-                confirm.addEventListener('input', checkMatch);
+                }
+            });
+        }
 
-                function setError(id, text) {
-                    var el = $(id);
-                    var hint = document.querySelector('.field-hint[data-for="' + id + '"]');
-                    el.classList.toggle('is-invalid', !!text);
-                    if (hint) { hint.textContent = text || ''; hint.className = 'field-hint' + (text ? ' bad' : ''); }
+        if (confirmPassword) {
+            confirmPassword.addEventListener('input', checkMatch);
+        }
+
+        // Validate and submit the registration form.
+        form.addEventListener('submit', function (event) {
+            var valid = true;
+
+            var name = $('name');
+            var email = $('email');
+            var phone = $('phone');
+            var terms = $('terms');
+
+            // Validate full name.
+            if (!name || !name.value.trim()) {
+                setError('name', 'Enter your full name.');
+                valid = false;
+            } else {
+                setError('name', '');
+            }
+
+            // Validate email address.
+            if (
+                !email ||
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())
+            ) {
+                setError('email', 'Enter a valid email address.');
+                valid = false;
+            } else {
+                setError('email', '');
+            }
+
+            // Validate phone number.
+            if (!phone || phone.value.replace(/\D/g, '').length < 10) {
+                setError('phone', 'Enter a valid phone number.');
+                valid = false;
+            } else {
+                setError('phone', '');
+            }
+
+            // Validate password strength.
+            var strength = updateStrength();
+
+            if (!pass || pass.value.length < 8 || strength < 2) {
+                if (meterText) {
+                    meterText.textContent =
+                        'Use at least 8 characters with letters and numbers.';
+                    meterText.className = 'field-hint bad';
                 }
 
-                // Design preview only: checks the fields, does not save anything
-                form.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    var valid = true;
+                valid = false;
+            }
 
-                    if (!$('name').value.trim()) { setError('name', 'Enter your full name.'); valid = false; } else setError('name', '');
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('email').value.trim())) { setError('email', 'Enter a valid email address.'); valid = false; } else setError('email', '');
-                    if (!$('shop_name').value.trim()) { setError('shop_name', 'Enter your shop or business name.'); valid = false; } else setError('shop_name', '');
-                    if ($('phone').value.replace(/\D/g, '').length < 10) { setError('phone', 'Enter a valid phone number.'); valid = false; } else setError('phone', '');
-                    if (!$('role').value) { setError('role', 'Select your role.'); valid = false; } else setError('role', '');
+            // Validate password confirmation.
+            if (!checkMatch()) {
+                if (confirmPassword && !confirmPassword.value && matchText) {
+                    matchText.textContent = 'Confirm your password.';
+                    matchText.className = 'field-hint bad';
+                }
 
-                    if (score(pass.value) < 2 || pass.value.length < 8) { meterText.textContent = 'Use at least 8 characters with letters and numbers.'; meterText.className = 'field-hint bad'; valid = false; } else { meterText.className = 'field-hint'; meterText.textContent = labels[score(pass.value)]; }
-                    if (!checkMatch()) { if (!confirm.value) { matchText.textContent = 'Confirm your password.'; matchText.className = 'field-hint bad'; } valid = false; }
+                valid = false;
+            }
 
-                    if (!$('terms').checked) { status.textContent = 'Please accept the Terms & Privacy.'; valid = false; }
-                    else if (valid) status.textContent = 'Form looks good. Saving is not connected yet (design preview).';
-                    else status.textContent = '';
-                });
-            })();
-        </script>
+            // Validate terms and privacy agreement.
+            if (!terms || !terms.checked) {
+                if (status) {
+                    status.textContent =
+                        'Please accept the Terms & Privacy.';
+                    status.className = 'form-status bad';
+                }
+
+                valid = false;
+            } else if (status) {
+                status.textContent = '';
+                status.className = 'form-status';
+            }
+
+            // Block submission only if validation fails.
+            if (!valid) {
+                event.preventDefault();
+            }
+            // If valid, the browser submits the form to Laravel.
+        });
+    })();
+</script>
+```
     </body>
 </html>
