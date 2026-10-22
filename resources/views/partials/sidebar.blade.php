@@ -144,6 +144,7 @@
 								<li><a href="{{ url('/profit-and-loss') }}" class="{{ request()->is('profit-and-loss') ? 'active' : '' }}"><i data-feather="pie-chart"></i><span>Profit & Loss</span></a></li>
 							</ul>
 						</li>
+						@if(auth()->user()->hasRole('admin'))
 						<li class="submenu-open">
 							<h6 class="submenu-hdr">User Management</h6>
 							<ul>
@@ -152,6 +153,8 @@
 								<li><a href="{{ url('/delete-account') }}" class="{{ request()->is('delete-account') ? 'active' : '' }}"><i data-feather="lock"></i><span>Delete Account Request</span></a></li>
 							</ul>
 						</li>
+						@endif
+						
 						<li class="submenu-open">
 							<h6 class="submenu-hdr">Pages</h6>
 							<ul>
