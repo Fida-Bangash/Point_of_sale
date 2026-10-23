@@ -17,8 +17,8 @@ public function store(Request $request)
 {
     $data = $request->validate([
         'name'     => ['required', 'string', 'max:255'],
-        'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
-        'phone'    => ['nullable', 'string', 'max:20'],
+        'email'    => ['required', 'email:rfc,dns', 'max:255', 'unique:users,email'],
+          'phone' => ['nullable', 'regex:/^03\d{9}$/'],
         'role'     => ['required', Rule::in(User::ROLES)],
         'password' => ['required', 'confirmed', 'min:8'],
     ]);
@@ -27,15 +27,15 @@ public function store(Request $request)
     $user->role = $data['role'];
     $user->save();
 
-    return back()->with('status', 'User ban gaya.');
+    return back()->with('status', 'User created successfully.');
 }
 
 public function update(Request $request, User $user)
 {
     $data = $request->validate([
         'name'      => ['required', 'string', 'max:255'],
-        'email'     => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-        'phone'     => ['nullable', 'string', 'max:20'],
+        'email'     => ['required', 'email:rfc,dns', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+        'phone'     => ['nullable', 'regex:/^03\d{9}$/', 'string', 'max:20'],
         'role'      => ['required', Rule::in(User::ROLES)],
         'is_active' => ['required', 'boolean'],
         'password'  => ['nullable', 'confirmed', 'min:8'],
@@ -43,7 +43,7 @@ public function update(Request $request, User $user)
 
     // Admin apne aap ko demote ya deactivate na kar sake (warna koi admin hi na bache)
     if ($user->is($request->user()) && ($data['role'] !== 'admin' || ! $data['is_active'])) {
-        return back()->withErrors(['role' => 'Apna admin role ya status nahi badal sakte.']);
+        return back()->withErrors(['role' => 'You cannot change your own role or deactivate your own account.']);
     }
 
     $user->fill(Arr::only($data, ['name', 'email', 'phone']));
@@ -54,7 +54,7 @@ public function update(Request $request, User $user)
     }
     $user->save();
 
-    return back()->with('status', 'User update ho gaya.');
+    return back()->with('status', 'User updated successfully.');
 }
 
 }

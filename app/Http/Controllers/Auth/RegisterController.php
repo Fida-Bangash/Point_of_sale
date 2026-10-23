@@ -28,13 +28,34 @@ class RegisterController extends Controller
         // Prevent public registration after the first user exists.
         abort_if(User::query()->exists(), 403);
 
+        $request->merge([
+        'email' => strtolower(trim((string) $request->email)),
+        'phone' => preg_replace('/[\s\-]/', '', (string) $request->phone),
+        ]);
+
         // Validate registration form data.
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required', 'email:rfc,dns', 'max:255', 'unique:users,email',
+                function ($attribute, $value, $fail) {
+            $domain = strtolower(substr(strrchr($value, '@'), 1));
+            $typos = [
+                'gmil.com', 'gmial.com', 'gamil.com', 'gmai.com', 'gmaill.com',
+                'gnail.com', 'gmail.co', 'gmail.con', 'gmail.cm',
+                'yahooo.com', 'yaho.com', 'hotmial.com', 'hotmal.com', 'outlok.com',
+                ];
+            if (in_array($domain, $typos, true)) {
+                $fail('This email domain looks misspelled. Please check it and try again.');
+               }   
+             },
+            ],
+            'phone' => ['required', 'regex:/^03\d{9}$/', 'string', 'max:255'],
             'password' => ['required', 'string', 'confirmed', Password::defaults()],
             'terms' => ['accepted'],
+        ],[
+            'email.email' => 'Enter a valid email address (e.g. name@gmail.com).',
+            'phone.regex' => 'Phone number must be 11 digits and start with 03 (e.g. 03001234567).',
         ]);
 
         // Create the first user.
