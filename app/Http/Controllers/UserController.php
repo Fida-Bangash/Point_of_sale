@@ -5,6 +5,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -15,12 +16,13 @@ class UserController extends Controller
 
 public function store(Request $request)
 {
+    $request->merge(['email' => strtolower(trim((string) $request->email))]);
     $data = $request->validate([
         'name'     => ['required', 'string', 'max:255'],
-        'email'    => ['required', 'email:rfc,dns', 'max:255', 'unique:users,email'],
-          'phone' => ['nullable', 'regex:/^03\d{9}$/'],
+        'email'    => ['required', 'email:rfc', 'max:255', 'unique:users,email'],
+        'phone' => ['nullable', 'regex:/^03\d{9}$/'],
         'role'     => ['required', Rule::in(User::ROLES)],
-        'password' => ['required', 'confirmed', 'min:8'],
+        'password' => ['required', 'confirmed', Password::defaults()],
     ]);
 
     $user = new User(Arr::only($data, ['name', 'email', 'phone', 'password']));
@@ -32,13 +34,14 @@ public function store(Request $request)
 
 public function update(Request $request, User $user)
 {
+    $request->merge(['email' => strtolower(trim((string) $request->email))]);
     $data = $request->validate([
         'name'      => ['required', 'string', 'max:255'],
-        'email'     => ['required', 'email:rfc,dns', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+        'email'     => ['required', 'email:rfc', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
         'phone'     => ['nullable', 'regex:/^03\d{9}$/', 'string', 'max:20'],
         'role'      => ['required', Rule::in(User::ROLES)],
         'is_active' => ['required', 'boolean'],
-        'password'  => ['nullable', 'confirmed', 'min:8'],
+        'password'  => ['nullable', 'confirmed', Password::defaults()],
     ]);
 
     // Admin apne aap ko demote ya deactivate na kar sake (warna koi admin hi na bache)
