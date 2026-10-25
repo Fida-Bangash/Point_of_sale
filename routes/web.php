@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -85,13 +86,18 @@ Route::middleware('auth')->group(function () use ($pages) {
     Route::middleware('role:admin,manager,stock')->group(function () use ($pages) {
         $pages([
             'product-list', 'add-product', 'edit-product',
-            'product-details', 'brand-list', 'category-list',
+            'product-details', 'brand-list',
             'sub-categories', 'units', 'varriant-attributes',
             'warranty', 'barcode', 'qrcode',
             'expired-products', 'low-stocks', 'manage-stocks',
             'stock-adjustment', 'stock-transfer', 'purchase-list',
             'purchase-returns', 'suppliers', 'warehouse',
         ]);
+        
+             Route::get('/category-list', [CategoryController::class, 'index'])->name('category-list');
+             Route::post('/category-list', [CategoryController::class, 'store'])->name('categories.store');
+             Route::put('/category-list/{category}', [CategoryController::class, 'update'])->name('categories.update');
+             Route::delete('/category-list/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     });
 
     // ---- Reports aur hisab-kitab: admin, manager ----
