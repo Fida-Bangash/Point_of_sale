@@ -80,7 +80,7 @@
 				<!-- /Search -->
 
 
-				<!-- Select Store -->
+				{{-- <!-- Select Store -->
 				<li class="nav-item dropdown has-arrow main-drop select-store-dropdown">
 					<a href="javascript:void(0);" class="dropdown-toggle nav-link select-store"
 						data-bs-toggle="dropdown">
@@ -108,7 +108,7 @@
 						</a>
 					</div>
 				</li>
-				<!-- /Select Store -->
+				<!-- /Select Store --> --}}
 
 				<!-- Flag -->
 				<li class="nav-item dropdown has-arrow flag-nav nav-item-box">

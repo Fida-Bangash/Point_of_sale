@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -65,8 +66,12 @@ Route::middleware('auth')->group(function () use ($pages) {
     // ---- Sab roles: dashboard, profile ----
     Route::view('/', 'pages.index')->name('index');
     $pages([
-        'notification', 'profile',
+    'notification',
     ]);
+
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     // ---- POS / bikri: admin, manager, cashier ----
     Route::middleware('role:admin,manager,cashier')->group(function () use ($pages) {
