@@ -455,7 +455,7 @@ $editOld = old('_form') === 'edit-category';
 		<div class="modal-content">
 			<div class="page-wrapper-new p-0">
 				<div class="content">
-					<div class="modal-header border-0 custom-modal-header">
+	                <div class="modal-header border-0 custom-modal-header">
 						<div class="page-title">
 							<h4>Edit Category</h4>
 						</div>
