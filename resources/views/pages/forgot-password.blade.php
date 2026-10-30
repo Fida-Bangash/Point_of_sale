@@ -76,7 +76,8 @@
                 <div class="login-wrapper forgot-wrap">
                     <div class="login-content">
 
-                        <form action="#" id="forgot-form" novalidate>
+                    <form method="POST" action="{{ route('password.recovery') }}" novalidate>
+                            @csrf
                             <div class="login-userset">
                                 <div class="login-logo logo-normal">
                                     <img src="{{ asset('assets/img/logo.png') }}" alt="{{ config('app.name') }}">
@@ -87,7 +88,7 @@
 
                                 <div class="login-userheading">
                                     <h3>Forgot your password?</h3>
-                                    <h4>Enter the email you signed up with and we will send you a link to reset your password.</h4>
+                                    <h4>Write your email, recovery code, and new password.</h4>
                                 </div>
 
                                 {{-- Email --}}
@@ -95,14 +96,32 @@
                                     <label for="email">Email address</label>
                                     <div class="form-addons">
                                         <input type="email" id="email" name="email" class="form-control"
-                                               placeholder="you@example.com" autocomplete="email">
+                                            placeholder="you@example.com" autocomplete="email" value="{{ old('email') }}">
                                         <img src="{{ asset('assets/img/icons/mail.svg') }}" alt="">
                                     </div>
-                                    <span class="field-hint" data-for="email"></span>
+                                @error('email')<span class="field-hint bad">{{ $message }}</span>@enderror
                                 </div>
 
                                 <div class="form-login">
-                                    <button type="submit" class="btn btn-login">Send reset link</button>
+    <label for="recovery_code">Recovery code</label>
+    <input type="text" id="recovery_code" name="recovery_code" class="form-control"
+        placeholder="XXXX-XXXX-XXXX" autocomplete="off">
+    @error('recovery_code')<span class="field-hint bad">{{ $message }}</span>@enderror
+</div>
+
+<div class="form-login">
+    <label for="password">New password</label>
+    <input type="password" id="password" name="password" class="form-control" autocomplete="new-password">
+    @error('password')<span class="field-hint bad">{{ $message }}</span>@enderror
+</div>
+
+<div class="form-login">
+    <label for="password_confirmation">Confirm new password</label>
+    <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" autocomplete="new-password">
+</div>
+
+                                <div class="form-login">
+                                    <button type="submit" class="btn btn-login">Reset password</button>
                                     <p class="form-status" id="form-status" aria-live="polite"></p>
                                 </div>
 
@@ -130,29 +149,5 @@
         <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
         <script src="{{ asset('assets/js/theme-script.js') }}"></script>
         <script src="{{ asset('assets/js/script.js') }}"></script>
-
-        <script>
-            (function () {
-                var $ = function (id) { return document.getElementById(id); };
-                var form = $('forgot-form');
-                var status = $('form-status');
-
-                function setError(id, text) {
-                    var el = $(id);
-                    var hint = document.querySelector('.field-hint[data-for="' + id + '"]');
-                    el.classList.toggle('is-invalid', !!text);
-                    if (hint) { hint.textContent = text || ''; hint.className = 'field-hint' + (text ? ' bad' : ''); }
-                }
-
-                // Design preview only: checks the field, does not send any email
-                form.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    var valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('email').value.trim());
-
-                    setError('email', valid ? '' : 'Enter a valid email address.');
-                    status.textContent = valid ? 'Form looks good. Email sending is not connected yet (design preview).' : '';
-                });
-            })();
-        </script>
     </body>
 </html>

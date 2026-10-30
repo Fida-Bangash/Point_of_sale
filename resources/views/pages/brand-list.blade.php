@@ -1,474 +1,637 @@
 @extends('layouts.app')
 
-@section('title', 'Dreams Pos Admin Template')
+@section('title', 'Brands')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap5.min.css') }}">
+<style>
+	/* ---- Summary cards ---- */
+	.cat-stat {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding: 18px 20px;
+		border: 1px solid #edf0f4;
+		border-radius: 12px;
+		background: #fff;
+		height: 100%;
+	}
+
+	.cat-stat .stat-icon {
+		width: 46px;
+		height: 46px;
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.cat-stat .stat-icon svg {
+		width: 22px;
+		height: 22px;
+	}
+
+	.cat-stat h3 {
+		margin: 0;
+		font-size: 24px;
+		font-weight: 700;
+		line-height: 1.1;
+	}
+
+	.cat-stat p {
+		margin: 2px 0 0;
+		color: #6b7280;
+		font-size: 13px;
+	}
+
+	.stat-total {
+		background: #fff4e6;
+		color: #ff9f43;
+	}
+
+	.stat-active {
+		background: #e8f7ee;
+		color: #28c76f;
+	}
+
+	.stat-inactive {
+		background: #fdeaea;
+		color: #ea5455;
+	}
+
+	/* ---- Table ---- */
+	.cat-cell {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.cat-avatar {
+		width: 40px;
+		height: 40px;
+		border-radius: 10px;
+		font-weight: 700;
+		font-size: 16px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.cat-c1 {
+		background: #fff4e6;
+		color: #ff9f43;
+	}
+
+	.cat-c2 {
+		background: #e8f7ee;
+		color: #28c76f;
+	}
+
+	.cat-c3 {
+		background: #eceafd;
+		color: #7367f0;
+	}
+
+	.cat-c4 {
+		background: #e1f3fc;
+		color: #00a2e8;
+	}
+
+	.cat-cell .cat-name {
+		font-weight: 600;
+		color: #1b2230;
+		line-height: 1.2;
+	}
+
+	.slug-chip {
+		display: inline-block;
+		padding: 3px 10px;
+		border-radius: 6px;
+		background: #f8f9fb;
+		color: #6b7280;
+		font-size: 13px;
+	}
+
+	.product-count {
+		color: #1b2230;
+		font-weight: 600;
+	}
+
+	.product-count small {
+		color: #6b7280;
+		font-weight: 400;
+		margin-left: 2px;
+	}
+
+	/* Edit / delete icons centred under the "Action" header */
+	.cat-actions {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 14px;
+		width: 100%;
+	}
+
+	.cat-actions a {
+		padding: 0;
+		margin: 0;
+		cursor: pointer;
+	}
+
+	/* ---- Alerts ---- */
+	.page-alert {
+		border-radius: 10px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.page-alert svg {
+		width: 18px;
+		height: 18px;
+		flex-shrink: 0;
+	}
+
+	/* ---- Modals ---- */
+	.field-note {
+		color: #6b7280;
+		font-size: 12px;
+		margin-top: 4px;
+		display: block;
+	}
+
+	.required-star {
+		color: #ea5455;
+	}
+
+	.modal-body .alert {
+		border-radius: 10px;
+		font-size: 14px;
+	}
+
+	.delete-body {
+		text-align: center;
+		padding: 8px 4px 0;
+	}
+
+	.delete-icon {
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		background: #fdeaea;
+		color: #ea5455;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0 auto 14px;
+	}
+
+	.delete-icon svg {
+		width: 26px;
+		height: 26px;
+	}
+
+	.delete-body h5 {
+		font-weight: 700;
+		color: #1b2230;
+		margin-bottom: 6px;
+	}
+
+	.delete-body p {
+		color: #6b7280;
+		margin-bottom: 0;
+	}
+
+	.delete-body p strong {
+		color: #1b2230;
+	}
+
+	.btn-delete-confirm {
+		background: #ea5455;
+		border: 1px solid #ea5455;
+		color: #fff;
+		border-radius: 8px;
+		font-weight: 600;
+		padding: 10px 20px;
+	}
+
+	.btn-delete-confirm:hover {
+		background: #d94546;
+		border-color: #d94546;
+		color: #fff;
+	}
+</style>
 @endpush
 
 @section('content')
+@php
+$total = $brands->count();
+$active = $brands->where('is_active', true)->count();
+$inactive = $total - $active;
+
+$addOld = old('_form') === 'add-brand';
+$editOld = old('_form') === 'edit-brand';
+@endphp
+
 <div class="page-wrapper">
+	<div class="content">
+
+		{{-- Flash message (success) --}}
+		@if(session('status'))
+		<div class="alert alert-success alert-dismissible fade show page-alert" role="alert">
+			<i data-feather="check-circle"></i>
+			<span>{{ session('status') }}</span>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+		@endif
+
+		{{-- Flash message (error), e.g. delete blocked --}}
+		@if(session('error'))
+		<div class="alert alert-danger alert-dismissible fade show page-alert" role="alert">
+			<i data-feather="alert-circle"></i>
+			<span>{{ session('error') }}</span>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+		@endif
+
+		<div class="page-header">
+			<div class="add-item d-flex">
+				<div class="page-title">
+					<h4>Brands</h4>
+					<h6>The brands your products belong to</h6>
+				</div>
+			</div>
+			<ul class="table-top-head">
+				<li>
+					<a href="{{ url('/brand-list') }}" data-bs-toggle="tooltip" data-bs-placement="top"
+						title="Refresh"><i data-feather="rotate-ccw" class="feather-rotate-ccw"></i></a>
+				</li>
+				<li>
+					<a href="javascript:void(0);" onclick="window.print()" data-bs-toggle="tooltip"
+						data-bs-placement="top" title="Print"><i data-feather="printer"
+							class="feather-rotate-ccw"></i></a>
+				</li>
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header"><i
+							data-feather="chevron-up" class="feather-chevron-up"></i></a>
+				</li>
+			</ul>
+			<div class="page-btn">
+				<a href="#" class="btn btn-added" data-bs-toggle="modal" data-bs-target="#add-brand">
+					<i data-feather="plus-circle" class="me-2"></i>Add New Brand
+				</a>
+			</div>
+		</div>
+
+		{{-- Summary cards --}}
+		<div class="row g-3 mb-4">
+			<div class="col-xl-4 col-sm-6">
+				<div class="cat-stat">
+					<div class="stat-icon stat-total"><i data-feather="grid"></i></div>
+					<div>
+						<h3>{{ $total }}</h3>
+						<p>Total brands</p>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-4 col-sm-6">
+				<div class="cat-stat">
+					<div class="stat-icon stat-active"><i data-feather="check-circle"></i></div>
+					<div>
+						<h3>{{ $active }}</h3>
+						<p>Active</p>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-4 col-sm-6">
+				<div class="cat-stat">
+					<div class="stat-icon stat-inactive"><i data-feather="x-circle"></i></div>
+					<div>
+						<h3>{{ $inactive }}</h3>
+						<p>Inactive</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		{{-- Brands table --}}
+		<div class="card table-list-card">
+			<div class="card-body">
+				<div class="table-top">
+					<div class="search-set">
+						<div class="search-input">
+							<a href="" class="btn btn-searchset"><i data-feather="search"
+									class="feather-search"></i></a>
+						</div>
+					</div>
+				</div>
+
+				<div class="table-responsive">
+					<table class="table datanew">
+						<thead>
+							<tr>
+								<th>Brand</th>
+								<th>Slug</th>
+								<th>Products</th>
+								<th>Created On</th>
+								<th>Status</th>
+								<th class="no-sort text-center">Action</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach($brands as $brand)
+							<tr>
+								<td>
+									<div class="cat-cell">
+										<div class="cat-avatar cat-c{{ ($loop->index % 4) + 1 }}">{{
+											mb_strtoupper(mb_substr($brand->name, 0, 1)) }}</div>
+										<div class="cat-name">{{ $brand->name }}</div>
+									</div>
+								</td>
+								<td><span class="slug-chip">{{ $brand->slug }}</span></td>
+								<td><span class="product-count">{{ $brand->products_count }}<small>items</small></span></td>
+								<td>{{ $brand->created_at?->format('d M Y') }}</td>
+								<td>
+									@if($brand->is_active)
+									<span class="badge badge-linesuccess">Active</span>
+									@else
+									<span class="badge badge-linedanger">Inactive</span>
+									@endif
+								</td>
+								<td class="action-table-data text-center">
+									<div class="edit-delete-action cat-actions">
+										<a data-bs-toggle="modal" data-bs-target="#edit-brand" title="Edit brand"
+											data-cat-edit data-id="{{ $brand->id }}"
+											data-name="{{ $brand->name }}" data-slug="{{ $brand->slug }}"
+											data-active="{{ $brand->is_active ? 1 : 0 }}">
+											<i data-feather="edit" class="feather-edit"></i>
+										</a>
+										<a data-bs-toggle="modal" data-bs-target="#delete-brand"
+											title="Delete brand" data-cat-delete data-id="{{ $brand->id }}"
+											data-name="{{ $brand->name }}">
+											<i data-feather="trash-2" class="feather-trash-2"></i>
+										</a>
+									</div>
+								</td>
+							</tr>
+							@endforeach
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+{{-- ===================== Add brand modal ===================== --}}
+<div class="modal fade" id="add-brand" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered custom-modal-two">
+		<div class="modal-content">
+			<div class="page-wrapper-new p-0">
 				<div class="content">
-					<div class="page-header">
-						<div class="add-item d-flex">
-							<div class="page-title">
-								<h4>Brand</h4>
-								<h6>Manage your brands</h6>
-							</div>
+					<div class="modal-header border-0 custom-modal-header">
+						<div class="page-title">
+							<h4>Add Brand</h4>
 						</div>
-						<ul class="table-top-head">
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf"><img src="{{ asset('assets/img/icons/pdf.svg') }}" alt="img"></a>
-							</li>
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="Excel"><img src="{{ asset('assets/img/icons/excel.svg') }}" alt="img"></a>
-							</li>
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="Print"><i data-feather="printer" class="feather-rotate-ccw"></i></a>
-							</li>
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh"><i data-feather="rotate-ccw" class="feather-rotate-ccw"></i></a>
-							</li>
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header"><i data-feather="chevron-up" class="feather-chevron-up"></i></a>
-							</li>
-						</ul>
-						<div class="page-btn">
-							<a href="#" class="btn btn-added" data-bs-toggle="modal" data-bs-target="#add-brand"><i data-feather="plus-circle" class="me-2"></i>Add New Brand</a>
-						</div>
+						<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
 					</div>
-					<!-- /product list -->
-					<div class="card table-list-card">
-						<div class="card-body">
-							<div class="table-top">
-								<div class="search-set">
-									<div class="search-input">
-										<a href="" class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
-									</div>
-								</div>
-								<div class="search-path">
-									<a class="btn btn-filter" id="filter_search">
-										<i data-feather="filter" class="filter-icon"></i>
-										<span><img src="{{ asset('assets/img/icons/closes.svg') }}" alt="img"></span>
-									</a>
-								</div>
-								<div class="form-sort">
-									<i data-feather="sliders" class="info-img"></i>
-									<select class="select">
-										<option>Sort by Date</option>
-										<option>Newest</option>
-										<option>Oldest</option>
-									</select>
-								</div>
-							</div>
-							<!-- /Filter -->
-							<div class="card" id="filter_inputs">
-								<div class="card-body pb-0">
-									<div class="row">
-										<div class="col-lg-3 col-sm-6 col-12">
-											<div class="input-blocks">
-												<i data-feather="zap" class="info-img"></i>
-												<select class="select">
-													<option>Choose Brand</option>
-													<option>Lenevo</option>
-													<option>Boat</option>
-													<option>Nike</option>
-												</select>
-											</div>
-										</div>
-										<div class="col-lg-3 col-sm-6 col-12">
-											<div class="input-blocks">
-												<i data-feather="calendar" class="info-img"></i>
-												<div class="input-groupicon">
-													<input type="text" class="datetimepicker" placeholder="Choose Date" >
-												</div>
-											</div>
-										</div>
-										<div class="col-lg-3 col-sm-6 col-12">
-											<div class="input-blocks">
-												<i data-feather="stop-circle" class="info-img"></i>
-												<select class="select">
-													<option>Choose Status</option>
-													<option>Active</option>
-													<option>Inactive</option>
-												</select>
-											</div>
-										</div>
-										<div class="col-lg-3 col-sm-6 col-12 ms-auto">
-											<div class="input-blocks">
-												<a class="btn btn-filters ms-auto"> <i data-feather="search" class="feather-search"></i> Search </a>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- /Filter -->
-							<div class="table-responsive">
-								<table class="table  datanew">
-									<thead>
-										<tr>
-											<th class="no-sort">
-												<label class="checkboxs">
-													<input type="checkbox" id="select-all">
-													<span class="checkmarks"></span>
-												</label>
-											</th>
-											<th>Brand</th>
-											<th>Logo</th>
-											<th>Created On</th>
-											<th>Status</th>
-											<th class="no-sort">Action</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Lenevo</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-01.png') }}" alt=""></span></td>
-											<td>25 May 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-												
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Boat</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-02.png') }}" alt=""></span></td>
-											<td>24 Jun 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-												
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Nike</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-03.png') }}" alt=""></span></td>
-											<td>23 Jul 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-												
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Apple</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-04.png') }}" alt=""></span></td>
-											<td>22 Aug 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-												
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Amazon</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-05.png') }}" alt=""></span></td>
-											<td>21 Sep 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-												
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Woodmart</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-06.png') }}" alt=""></span></td>
-											<td>20 Sep 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-												
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Versace</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-07.png') }}" alt=""></span></td>
-											<td>20 Sep 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-												
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Lava</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-08.png') }}" alt=""></span></td>
-											<td>20 Sep 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-												
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Bently</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-09.png') }}" alt=""></span></td>
-											<td>20 Sep 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-												
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>Nilkamal</td>
-											<td><span class="d-flex"><img src="{{ asset('assets/img/brand/brand-icon-10.png') }}" alt=""></span></td>
-											<td>20 Sep 2023</td>
-											<td><span class="badge badge-linesuccess">Active</span></td>
-											<td class="action-table-data">
-												<div class="edit-delete-action">
-													<a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand">
-														<i data-feather="edit" class="feather-edit"></i>
-													</a>
-													<a class="confirm-text p-2" href="javascript:void(0);">
-														<i data-feather="trash-2" class="feather-trash-2"></i>
-													</a>
-												</div>
-											</td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-						</div>
-					</div>
-					<!-- /product list -->
-				</div>
-			</div>
+					<div class="modal-body custom-modal-body">
 
-<div class="modal fade" id="add-brand">
-				<div class="modal-dialog modal-dialog-centered custom-modal-two">
-					<div class="modal-content">
-						<div class="page-wrapper-new p-0">
-							<div class="content">
-								<div class="modal-header border-0 custom-modal-header">
-									<div class="page-title">
-										<h4>Create Brand</h4>
-									</div>
-									<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-										<span aria-hidden="true">&times;</span>
-									</button>
-								</div>
-								<div class="modal-body custom-modal-body new-employee-field">
-									<form action="{{ url('/brand-list') }}">
-										<div class="mb-3">
-											<label class="form-label">Brand</label>
-											<input type="text" class="form-control">
-										</div>
-										<label class="form-label">Logo</label>
-										<div class="profile-pic-upload mb-3">
-											<div class="profile-pic brand-pic">
-												<span><i data-feather="plus-circle" class="plus-down-add"></i> Add Image</span>
-											</div>
-											<div class="image-upload mb-0">
-												<input type="file">
-												<div class="image-uploads">
-													<h4>Change Image</h4>
-												</div>
-											</div>
-										</div>
-										<div class="mb-0">
-											<div class="status-toggle modal-status d-flex justify-content-between align-items-center">
-												<span class="status-label">Status</span>
-												<input type="checkbox" id="user2" class="check" checked="">
-												<label for="user2" class="checktoggle"></label>
-											</div>
-										</div>
-										<div class="modal-footer-btn">
-											<button type="button" class="btn btn-cancel me-2" data-bs-dismiss="modal">Cancel</button>
-											<button type="submit" class="btn btn-submit">Create Brand</button>
-										</div>
-									</form>
-								</div>
-							</div>
+						@if($addOld && $errors->any())
+						<div class="alert alert-danger">
+							<ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
 						</div>
-					</div>
-				</div>
-			</div>
-			
+						@endif
 
-			
-			<div class="modal fade" id="edit-brand">
-				<div class="modal-dialog modal-dialog-centered custom-modal-two">
-					<div class="modal-content">
-						<div class="page-wrapper-new p-0">
-							<div class="content">
-								<div class="modal-header border-0 custom-modal-header">
-									<div class="page-title">
-										<h4>Edit Brand</h4>
+						<form action="{{ route('brands.store') }}" method="POST">
+							@csrf
+							<input type="hidden" name="_form" value="add-brand">
+
+							<div class="row">
+								<div class="col-lg-6">
+									<div class="input-blocks">
+										<label>Brand name <span class="required-star">*</span></label>
+										<input type="text" id="add-cat-name" name="name" class="form-control"
+											placeholder="e.g. Samsung" maxlength="255" required
+											value="{{ $addOld ? old('name') : '' }}">
 									</div>
-									<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-										<span aria-hidden="true">&times;</span>
-									</button>
 								</div>
-								<div class="modal-body custom-modal-body new-employee-field">
-									<form action="{{ url('/brand-list') }}">
-										<div class="mb-3">
-											<label class="form-label">Brand</label>
-											<input type="text" class="form-control" value="Boat">
-										</div>
-										<label class="form-label">Logo</label>
-										<div class="profile-pic-upload mb-3">
-											<div class="profile-pic brand-pic">
-												<span><img src="{{ asset('assets/img/brand/brand-icon-02.png') }}" alt=""></span>
-												<a href="javascript:void(0);" class="remove-photo"><i data-feather="x" class="x-square-add"></i></a>
-											</div>
-											<div class="image-upload mb-0">
-												<input type="file">
-												<div class="image-uploads">
-													<h4>Change Image</h4>
-												</div>
-											</div>
-										</div>
-										<div class="mb-0">
-											<div class="status-toggle modal-status d-flex justify-content-between align-items-center">
-												<span class="status-label">Status</span>
-												<input type="checkbox" id="user4" class="check" checked="">
-												<label for="user4" class="checktoggle"></label>
-											</div>
-										</div>
-										<div class="modal-footer-btn">
-											<button type="button" class="btn btn-cancel me-2" data-bs-dismiss="modal">Cancel</button>
-											<button type="submit" class="btn btn-submit">Save Changes</button>
-										</div>
-									</form>
+								<div class="col-lg-6">
+									<div class="input-blocks">
+										<label>Slug <span class="required-star">*</span></label>
+										<input type="text" id="add-cat-slug" name="slug" class="form-control"
+											placeholder="samsung" maxlength="255" required
+											value="{{ $addOld ? old('slug') : '' }}">
+										<span class="field-note">Filled in for you. Lowercase letters, numbers and
+											dashes.</span>
+									</div>
+								</div>
+								<div class="col-lg-6">
+									<div class="input-blocks">
+										<label>Status</label>
+										<select class="select" name="is_active">
+											<option value="1" @selected(! $addOld || old('is_active')==='1' )>Active
+											</option>
+											<option value="0" @selected($addOld && old('is_active')==='0' )>Inactive
+											</option>
+										</select>
+										<span class="field-note">Inactive brands cannot be picked for new products.</span>
+									</div>
 								</div>
 							</div>
-						</div>
+							<div class="modal-footer-btn">
+								<button type="button" class="btn btn-cancel me-2"
+									data-bs-dismiss="modal">Cancel</button>
+								<button type="submit" class="btn btn-submit">Create brand</button>
+							</div>
+						</form>
 					</div>
 				</div>
 			</div>
+		</div>
+	</div>
+</div>
+
+{{-- ===================== Edit brand modal ===================== --}}
+<div class="modal fade" id="edit-brand" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered custom-modal-two">
+		<div class="modal-content">
+			<div class="page-wrapper-new p-0">
+				<div class="content">
+	                <div class="modal-header border-0 custom-modal-header">
+						<div class="page-title">
+							<h4>Edit Brand</h4>
+						</div>
+						<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body custom-modal-body">
+
+						@if($editOld && $errors->any())
+						<div class="alert alert-danger">
+							<ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+						</div>
+						@endif
+
+						{{-- JavaScript sets the action ID when the edit icon is clicked. --}}
+						<form id="edit-cat-form" action="{{ url('/brand-list') }}" method="POST">
+							@csrf
+							@method('PUT')
+							<input type="hidden" name="_form" value="edit-brand">
+							<input type="hidden" name="_id" id="edit-cat-id" value="{{ $editOld ? old('_id') : '' }}">
+
+							<div class="row">
+								<div class="col-lg-6">
+									<div class="input-blocks">
+										<label>Brand name <span class="required-star">*</span></label>
+										<input type="text" id="edit-cat-name" name="name" class="form-control"
+											maxlength="255" required value="{{ $editOld ? old('name') : '' }}">
+									</div>
+								</div>
+								<div class="col-lg-6">
+									<div class="input-blocks">
+										<label>Slug <span class="required-star">*</span></label>
+										<input type="text" id="edit-cat-slug" name="slug" class="form-control"
+											maxlength="255" required value="{{ $editOld ? old('slug') : '' }}">
+										<span class="field-note">Lowercase letters, numbers and dashes.</span>
+									</div>
+								</div>
+								<div class="col-lg-6">
+									<div class="input-blocks">
+										<label>Status</label>
+										<select class="select" id="edit-cat-status" name="is_active">
+											<option value="1" @selected(! $editOld || old('is_active')==='1' )>Active
+											</option>
+											<option value="0" @selected($editOld && old('is_active')==='0' )>Inactive
+											</option>
+										</select>
+										<span class="field-note">Inactive brands cannot be picked for new products.</span>
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer-btn">
+								<button type="button" class="btn btn-cancel me-2"
+									data-bs-dismiss="modal">Cancel</button>
+								<button type="submit" class="btn btn-submit">Save changes</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{{-- ===================== Delete brand modal ===================== --}}
+<div class="modal fade" id="delete-brand" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered custom-modal-two">
+		<div class="modal-content">
+			<div class="page-wrapper-new p-0">
+				<div class="content">
+					<div class="modal-header border-0 custom-modal-header">
+						<div class="page-title">
+							<h4>Delete Brand</h4>
+						</div>
+						<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body custom-modal-body">
+				{{-- JavaScript sets the action ID when the delete icon is clicked. --}}
+						<form id="delete-cat-form" action="{{ url('/brand-list') }}" method="POST">
+							@csrf
+							@method('DELETE')
+
+							<div class="delete-body">
+								<div class="delete-icon"><i data-feather="trash-2"></i></div>
+								<h5>Delete this brand?</h5>
+								<p><strong id="delete-cat-name">Brand</strong> will be removed for good. This cannot
+									be undone.</p>
+							</div>
+							<div class="modal-footer-btn justify-content-center">
+								<button type="button" class="btn btn-cancel me-2" data-bs-dismiss="modal">Keep
+									brand</button>
+								<button type="submit" class="btn btn-delete-confirm">Delete brand</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 @endsection
 
 @push('scripts')
 <script src="{{ asset('assets/js/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('assets/js/dataTables.bootstrap5.min.js') }}"></script>
-<script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
 <script src="{{ asset('assets/js/moment.min.js') }}"></script>
 <script src="{{ asset('assets/js/bootstrap-datetimepicker.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
 <script src="{{ asset('assets/plugins/sweetalert/sweetalert2.all.min.js') }}"></script>
 <script src="{{ asset('assets/plugins/sweetalert/sweetalerts.min.js') }}"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		var baseUrl = "{{ url('/brand-list') }}/";
+
+		function slugify(text) {
+			return text.toLowerCase().trim()
+				.replace(/&/g, ' and ')
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-+|-+$/g, '');
+		}
+
+		// Add modal: The slug is automatically generated from the name until manually edited.
+		var addName = document.getElementById('add-cat-name');
+		var addSlug = document.getElementById('add-cat-slug');
+		var slugEdited = false;
+
+		addSlug.addEventListener('input', function () {
+			slugEdited = addSlug.value !== '';
+		});
+		addName.addEventListener('input', function () {
+			if (!slugEdited) addSlug.value = slugify(addName.value);
+		});
+		document.getElementById('add-brand').addEventListener('hidden.bs.modal', function () {
+			this.querySelector('form').reset();
+			slugEdited = false;
+		});
+		// Edit/delete icons populate their modals (works even after table search or pagination).
+		document.addEventListener('click', function (e) {
+			var edit = e.target.closest('[data-cat-edit]');
+			if (edit) {
+				document.getElementById('edit-cat-id').value = edit.dataset.id;
+				document.getElementById('edit-cat-form').action = baseUrl + edit.dataset.id;
+				document.getElementById('edit-cat-name').value = edit.dataset.name;
+				document.getElementById('edit-cat-slug').value = edit.dataset.slug;
+				var status = document.getElementById('edit-cat-status');
+				status.value = edit.dataset.active;
+				if (window.jQuery) window.jQuery(status).trigger('change');
+			}
+
+			var del = e.target.closest('[data-cat-delete]');
+			if (del) {
+				document.getElementById('delete-cat-form').action = baseUrl + del.dataset.id;
+				document.getElementById('delete-cat-name').textContent = del.dataset.name;
+			}
+		});
+
+		// Reopen the same modal when validation fails.
+		@if ($errors -> any() && old('_form'))
+			var failed = document.getElementById(@json(old('_form')));
+		if (failed && window.bootstrap) {
+			@if (old('_form') === 'edit-brand')
+				document.getElementById('edit-cat-form').action = baseUrl + @json(old('_id'));
+			@endif
+			new bootstrap.Modal(failed).show();
+		}
+		@endif
+	});
+</script>
 @endpush

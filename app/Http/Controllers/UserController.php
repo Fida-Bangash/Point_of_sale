@@ -44,7 +44,7 @@ public function update(Request $request, User $user)
         'password'  => ['nullable', 'confirmed', Password::defaults()],
     ]);
 
-    // Admin apne aap ko demote ya deactivate na kar sake (warna koi admin hi na bache)
+// Admin cannot demote or deactivate their own account (to ensure at least one admin remains).
     if ($user->is($request->user()) && ($data['role'] !== 'admin' || ! $data['is_active'])) {
         return back()->withErrors(['role' => 'You cannot change your own role or deactivate your own account.']);
     }
@@ -53,7 +53,7 @@ public function update(Request $request, User $user)
     $user->role = $data['role'];
     $user->is_active = (bool) $data['is_active'];
     if (! empty($data['password'])) {
-        $user->password = $data['password'];   // cast khud hash karega
+        $user->password = $data['password'];   // The model cast will automatically hash the password.
     }
     $user->save();
 

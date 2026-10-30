@@ -37,7 +37,7 @@ class RegisterController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => [
-                'required', 'email:rfc,dns', 'max:255', 'unique:users,email',
+                'required', 'email:rfc', 'max:255', 'unique:users,email',
                 function ($attribute, $value, $fail) {
             $domain = strtolower(substr(strrchr($value, '@'), 1));
             $typos = [
@@ -69,8 +69,8 @@ class RegisterController extends Controller
         // Log in the newly created admin.
         Auth::login($user);
 
-        $request->session()->regenerate();
+        session(['recovery_code' => $user->issueRecoveryCode()]);
 
-        return redirect()->route('index');
+        return redirect()->route('recovery.show');
     }
 }

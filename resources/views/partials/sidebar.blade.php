@@ -404,6 +404,10 @@
 							<ul>
 								<li><a href="{{ url('/storage-settings') }}"
 										class="{{ request()->is('storage-settings') ? 'active' : '' }}">Storage</a></li>
+								<li><a href="{{ url('/backup') }}" 
+									class="{{ request()->is('backup') ? 'active' : '' }}">Backup</a></li>
+									<li><a href="{{ url('/updates') }}"
+										class="{{ request()->is('updates') ? 'active' : '' }}">Updates</a></li>
 								<li><a href="{{ url('/ban-ip-address') }}"
 										class="{{ request()->is('ban-ip-address') ? 'active' : '' }}">Ban IP Address</a>
 								</li>
@@ -891,6 +895,10 @@
 						<ul>
 							<li><a href="{{ url('/storage-settings') }}"
 									class="{{ request()->is('storage-settings') ? 'active' : '' }}">Storage</a></li>
+									<li><a href="{{ url('/backup') }}"
+										class="{{ request()->is('backup') ? 'active' : '' }}">Backup</a></li>
+										<li><a href="{{ url('/updates') }}"
+											class="{{ request()->is('updates') ? 'active' : '' }}">Updates</a></li>
 							<li><a href="{{ url('/ban-ip-address') }}"
 									class="{{ request()->is('ban-ip-address') ? 'active' : '' }}">Ban IP Address</a>
 							</li>
@@ -1300,6 +1308,10 @@
 						<ul>
 							<li><a href="{{ url('/storage-settings') }}"
 									class="{{ request()->is('storage-settings') ? 'active' : '' }}">Storage</a></li>
+									<li><a href="{{ url('/backup') }}"
+										class="{{ request()->is('backup') ? 'active' : '' }}">Backup</a></li>
+										<li><a href="{{ url('/updates') }}"
+											class="{{ request()->is('updates') ? 'active' : '' }}">Updates</a></li>
 							<li><a href="{{ url('/ban-ip-address') }}"
 									class="{{ request()->is('ban-ip-address') ? 'active' : '' }}">Ban IP Address</a>
 							</li>

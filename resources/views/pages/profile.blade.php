@@ -398,6 +398,28 @@ $hasPasswordErrors = $errors->password->any();
 					</div>
 				</form>
 
+				<form method="POST" action="{{ route('profile.recovery') }}">
+    @csrf
+    <div class="card pf-card">
+        <div class="card-body">
+            <h5 class="pf-card-title">Recovery code</h5>
+            <p class="pf-card-sub">Generating a new code will invalidate the previous recovery code.</p>
+
+            @if ($errors->recovery->any())
+                <div class="alert alert-danger">{{ $errors->recovery->first() }}</div>
+            @endif
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="rc_password">Current password</label>
+                    <input type="password" id="rc_password" name="current_password" class="form-control" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate New Recovery Code</button>
+        </div>
+    </div>
+</form>
+
 			</div>
 		</div>
 	</div>

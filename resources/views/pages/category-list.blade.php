@@ -247,6 +247,15 @@ $editOld = old('_form') === 'edit-category';
 		</div>
 		@endif
 
+		{{-- Flash message (error), e.g. delete blocked --}}
+		@if(session('error'))
+		<div class="alert alert-danger alert-dismissible fade show page-alert" role="alert">
+			<i data-feather="alert-circle"></i>
+			<span>{{ session('error') }}</span>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+		@endif
+
 		<div class="page-header">
 			<div class="add-item d-flex">
 				<div class="page-title">
@@ -342,8 +351,7 @@ $editOld = old('_form') === 'edit-category';
 									</div>
 								</td>
 								<td><span class="slug-chip">{{ $category->slug }}</span></td>
-								{{-- Product module banne ke baad yahan withCount('products') use karna --}}
-								<td><span class="product-count">0<small>items</small></span></td>
+								<td><span class="product-count">{{ $category->products_count }}<small>items</small></span></td>
 								<td>{{ $category->created_at?->format('d M Y') }}</td>
 								<td>
 									@if($category->is_active)
@@ -471,7 +479,7 @@ $editOld = old('_form') === 'edit-category';
 						</div>
 						@endif
 
-						{{-- action ka id wala hissa JS lagata hai (edit icon dabane par) --}}
+						{{-- JavaScript sets the action ID when the edit icon is clicked. --}}
 						<form id="edit-cat-form" action="{{ url('/category-list') }}" method="POST">
 							@csrf
 							@method('PUT')
@@ -535,7 +543,7 @@ $editOld = old('_form') === 'edit-category';
 						</button>
 					</div>
 					<div class="modal-body custom-modal-body">
-						{{-- action ka id wala hissa JS lagata hai (delete icon dabane par) --}}
+				{{-- JavaScript sets the action ID when the delete icon is clicked. --}}
 						<form id="delete-cat-form" action="{{ url('/category-list') }}" method="POST">
 							@csrf
 							@method('DELETE')
@@ -579,7 +587,7 @@ $editOld = old('_form') === 'edit-category';
 				.replace(/^-+|-+$/g, '');
 		}
 
-		// Add modal: slug naam ke saath khud banta hai jab tak slug haath se na badlo
+		// Add modal: The slug is automatically generated from the name until manually edited.
 		var addName = document.getElementById('add-cat-name');
 		var addSlug = document.getElementById('add-cat-slug');
 		var slugEdited = false;
@@ -594,7 +602,7 @@ $editOld = old('_form') === 'edit-category';
 			this.querySelector('form').reset();
 			slugEdited = false;
 		});
-		// Edit / delete ke icons modal bharte hain (table search ya paging ke baad bhi chalta hai)
+		// Edit/delete icons populate their modals (works even after table search or pagination).
 		document.addEventListener('click', function (e) {
 			var edit = e.target.closest('[data-cat-edit]');
 			if (edit) {
@@ -614,7 +622,7 @@ $editOld = old('_form') === 'edit-category';
 			}
 		});
 
-		// Validation fail hone par wahi modal dobara khol do
+		// Reopen the same modal when validation fails.
 		@if ($errors -> any() && old('_form'))
 			var failed = document.getElementById(@json(old('_form')));
 		if (failed && window.bootstrap) {

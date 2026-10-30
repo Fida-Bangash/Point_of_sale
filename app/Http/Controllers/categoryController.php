@@ -12,7 +12,7 @@ class CategoryController extends Controller
     public function index()
     {
         return view('pages.category-list',[
-        'categories' => category::orderBy('name')->get(),
+        'categories' => Category::withCount('products')->orderBy('name')->get(),
         ]);
     }
 
@@ -27,32 +27,38 @@ class CategoryController extends Controller
             'is_active'  => ['required', 'boolean'],
         ]);
 
-        category::create($data);
+        Category::create($data);
 
         return back()->with('status','category created successfully.');
     }
 
-    public function update(Request $request, category $category)
+    public function update(Request $request, Category $Category)
     {
         $this->prepare($request);
 
         $data = $request->validate([
-            'name'      => ['required', 'string', 'max:255', Rule::unique('categories', 'name')->ignore($category->id)],
-            'slug'      => ['required', 'string', 'max:255', Rule::unique('categories', 'slug')->ignore($category->id)],
+            'name'      => ['required', 'string', 'max:255', Rule::unique('categories', 'name')->ignore($Category->id)],
+            'slug'      => ['required', 'string', 'max:255', Rule::unique('categories', 'slug')->ignore($Category->id)],
             'is_active' => ['required', 'boolean'],
         ]);
 
-        $category->update($data);
+        $Category->update($data);
 
         return back()->with('status','category updated successfully.');
     }
 
-    public function destroy(category $category)
+    public function destroy(Category $Category)
     {
-        $category->delete();
+
+    $count = $Category->products()->count();
+    if($count > 0) {
+        return back()->with('error', "cannot delete \"{$Category->name}\": {$count} product(s) use it.");
+    }
+        $Category->delete();
 
         return back()->with('status','category deleted successfully.');
     }
+
 
     private function prepare(Request $request): void
     {
@@ -60,7 +66,7 @@ class CategoryController extends Controller
 
         $request->merge([
             'name' => $name,
-            'slug' => str::slug($request->slug ?: $name),
+            'slug' => Str::slug($request->slug ?: $name),
         ]);
     }
 
