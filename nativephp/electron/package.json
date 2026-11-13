@@ -1,6 +1,6 @@
 {
     "name": "my-pos-dev",
-    "version": "1.0.4",
+    "version": "1.1.1",
     "description": "POS system",
     "main": "./out/main/index.js",
     "author": "Fida Ullah",

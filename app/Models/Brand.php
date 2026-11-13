@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Syncable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,10 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['name', 'slug', 'is_active'])]
 class Brand extends Model
 {
-    
+    use Syncable;
+
+    public const SYNC_COLUMNS = ['name', 'slug', 'is_active'];
+
     protected function casts(): array
     {
-        return ['is_active' => 'boolean']; 
+        return ['is_active' => 'boolean'];
     }
 
     public function products(): HasMany

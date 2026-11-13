@@ -150,7 +150,12 @@
                                     <h4>New here?
                                     <a href="{{ url('/register') }}" class="hover-a">Create an account</a>
                                     </h4>
-                                </div>    
+                                </div>
+                                <div class="signinform text-center">
+                                    <h4>
+                                    <a href="{{ route('restore.show') }}" class="hover-a">Restore my data from cloud</a>
+                                    </h4>
+                                </div>
                                 @endif
                                 
 

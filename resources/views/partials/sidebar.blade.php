@@ -406,6 +406,8 @@
 										class="{{ request()->is('storage-settings') ? 'active' : '' }}">Storage</a></li>
 								<li><a href="{{ url('/backup') }}" 
 									class="{{ request()->is('backup') ? 'active' : '' }}">Backup</a></li>
+									<li><a href="{{ url('/sync') }}"
+    class="{{ request()->is('sync') ? 'active' : '' }}">Cloud Sync</a></li>
 									<li><a href="{{ url('/updates') }}"
 										class="{{ request()->is('updates') ? 'active' : '' }}">Updates</a></li>
 								<li><a href="{{ url('/ban-ip-address') }}"
@@ -897,6 +899,8 @@
 									class="{{ request()->is('storage-settings') ? 'active' : '' }}">Storage</a></li>
 									<li><a href="{{ url('/backup') }}"
 										class="{{ request()->is('backup') ? 'active' : '' }}">Backup</a></li>
+										<li><a href="{{ url('/sync') }}"
+    class="{{ request()->is('sync') ? 'active' : '' }}">Cloud Sync</a></li>
 										<li><a href="{{ url('/updates') }}"
 											class="{{ request()->is('updates') ? 'active' : '' }}">Updates</a></li>
 							<li><a href="{{ url('/ban-ip-address') }}"
@@ -1310,6 +1314,8 @@
 									class="{{ request()->is('storage-settings') ? 'active' : '' }}">Storage</a></li>
 									<li><a href="{{ url('/backup') }}"
 										class="{{ request()->is('backup') ? 'active' : '' }}">Backup</a></li>
+										<li><a href="{{ url('/sync') }}"
+    class="{{ request()->is('sync') ? 'active' : '' }}">Cloud Sync</a></li>
 										<li><a href="{{ url('/updates') }}"
 											class="{{ request()->is('updates') ? 'active' : '' }}">Updates</a></li>
 							<li><a href="{{ url('/ban-ip-address') }}"

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\Syncable;
 use Illuminate\Support\Facades\Hash;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -16,7 +17,9 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+        use HasFactory, Notifiable, Syncable;
+
+    public const SYNC_COLUMNS = ['name', 'email', 'phone', 'role', 'is_active', 'password', 'recovery_code'];
 
     public const ROLES = ['admin','manager','cashier','stock'];
      

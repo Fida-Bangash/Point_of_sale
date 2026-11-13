@@ -2,17 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Syncable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['name', 'slug', 'is_active'])]
-
 class Category extends Model
 {
+    use Syncable;
+
+    public const SYNC_COLUMNS = ['name', 'slug', 'is_active'];
+
     protected function casts(): array
     {
-        return[
+        return [
             'is_active' => 'boolean',
         ];
     }

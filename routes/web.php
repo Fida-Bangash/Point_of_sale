@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\SyncController;
+use App\Http\Controllers\RestoreController;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -51,6 +53,9 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/forgot-password', [RecoveryController::class, 'showForgot'])->name('forgot-password');
     Route::post('/forgot-password', [RecoveryController::class, 'reset'])->middleware('throttle:5,1')->name('password.recovery');
+
+    Route::get('/restore', [RestoreController::class, 'show'])->name('restore.show');
+    Route::post('/restore', [RestoreController::class, 'store'])->middleware('throttle:5,1')->name('restore.store');
 });
 
     Route::get('/recovery-code', [RecoveryController::class, 'show'])->name('recovery.show');
@@ -85,6 +90,8 @@ Route::middleware('auth')->group(function () use ($pages) {
 
     // Logout POST se hona chahiye (GET se koi bhi logout karwa sakta hai)
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::post('/sync/run', [SyncController::class, 'run'])->name('sync.run');
 
     // ---- Sab roles: dashboard, profile ----
     Route::view('/', 'pages.index')->name('index');
@@ -158,6 +165,9 @@ Route::middleware('auth')->group(function () use ($pages) {
     Route::middleware('role:admin')->group(function () use ($pages) {
         Route::resource('users', UserController::class)->only(['index', 'store', 'update']);
         
+        Route::get('/sync', [SyncController::class, 'index'])->name('sync');
+        Route::post('/sync/settings', [SyncController::class, 'settings'])->name('sync.settings');
+
         Route::get('/backup', [BackupController::class, 'index'])->name('backup');
         Route::post('/backup', [BackupController::class, 'download'])->name('backup.download');
 

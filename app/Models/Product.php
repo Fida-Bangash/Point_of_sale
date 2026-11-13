@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Syncable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-// use Illuminate\Database\Eloquent\Relations\HasMany;
-
 
 #[Fillable([
     'name', 'sku', 'barcode', 'category_id', 'brand_id', 'unit_id',
@@ -15,19 +14,34 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class Product extends Model
 {
+    use Syncable;
+
+    public const SYNC_COLUMNS = [
+        'name', 'sku', 'barcode', 'purchase_price', 'selling_price',
+        'quantity', 'alert_quantity', 'description', 'image', 'is_active',
+    ];
+
+    public function syncRelations(): array
+    {
+        return [
+            'category_id' => [Category::class, 'category_uuid'],
+            'brand_id'    => [Brand::class, 'brand_uuid'],
+            'unit_id'     => [Unit::class, 'unit_uuid'],
+        ];
+    }
+
     protected function casts(): array
     {
-        return[
+        return [
             'purchase_price' => 'decimal:2', 'selling_price' => 'decimal:2',
             'quantity' => 'decimal:3', 'alert_quantity' => 'decimal:3',
             'is_active' => 'boolean',
         ];
     }
 
-    public function category(): BelongsTo { return $this->belongsTo(Category::class);}
-    public function brand(): BelongsTo { return $this->belongsTo(Brand::class);}
-    public function unit(): BelongsTo { return $this->belongsTo(Unit::class);}
-    
+    public function category(): BelongsTo { return $this->belongsTo(Category::class); }
+    public function brand(): BelongsTo { return $this->belongsTo(Brand::class); }
+    public function unit(): BelongsTo { return $this->belongsTo(Unit::class); }
 
     public function isLowStock(): bool
     {
@@ -36,7 +50,7 @@ class Product extends Model
 
     public function imageUrl(): ?string
     {
-    return $this->image ? route('media', ['path' => $this->image]) : null;
+        return $this->image ? route('media', ['path' => $this->image]) : null;
     }
 
     public static function trimNumber(float|int|string|null $v): string
