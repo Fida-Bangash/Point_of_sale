@@ -28,7 +28,7 @@
 					</div>
 					<div class="row">
 						<div class="col-xl-12">
-							 <div class="settings-wrapper d-flex">
+							<div class="settings-wrapper d-flex">
 								<div class="sidebars settings-sidebar theiaStickySidebar" id="sidebar2">
 									<div class="sidebar-inner slimscroll">
 										<div id="sidebar-menu5" class="sidebar-menu">
@@ -38,23 +38,15 @@
 														<li class="submenu">
 															<a href="javascript:void(0);"><i data-feather="settings"></i><span>General Settings</span><span class="menu-arrow"></span></a>
 															<ul>
-																<li><a href="{{ url('/general-settings') }}">Profile</a></li>
-																<li><a href="{{ url('/security-settings') }}">Security</a></li>
 																<li><a href="{{ url('/notification') }}">Notifications</a></li>
-																<li><a href="{{ url('/connected-apps') }}">Connected Apps</a></li>
 															</ul>
 														</li>
 														<li class="submenu">
 															<a href="javascript:void(0);"><i data-feather="airplay"></i><span>Website Settings</span><span class="menu-arrow"></span></a>
 															<ul>
-																<li><a href="{{ url('/system-settings') }}">System Settings</a></li>
 																<li><a href="{{ url('/company-settings') }}">Company Settings </a></li>
-																<li><a href="{{ url('/localization-settings') }}">Localization</a></li>
 																<li><a href="{{ url('/prefixes') }}">Prefixes</a></li>
-																<li><a href="{{ url('/preference') }}">Preference</a></li>
-																<li><a href="{{ url('/appearance') }}">Appearance</a></li>
-																<li><a href="{{ url('/social-authentication') }}">Social Authentication</a></li>
-																<li><a href="{{ url('/language-settings') }}">Language</a></li>
+
 															</ul>
 														</li>
 														<li class="submenu">
@@ -63,34 +55,19 @@
 																<li><a href="{{ url('/invoice-settings') }}">Invoice</a></li>
 																<li><a href="{{ url('/printer-settings') }}" class="active">Printer </a></li>
 																<li><a href="{{ url('/pos-settings') }}">POS</a></li>
-																<li><a href="{{ url('/custom-fields') }}">Custom Fields</a></li>
+
 															</ul>
 														</li>
-														<li class="submenu">
-															<a href="javascript:void(0);"><i data-feather="server"></i><span>System Settings</span><span class="menu-arrow"></span></a>
-															<ul>
-																<li><a href="{{ url('/email-settings') }}">Email</a></li>
-																<li><a href="{{ url('/sms-gateway') }}">SMS Gateways</a></li>
-																<li><a href="{{ url('/otp-settings') }}">OTP</a></li>
-																<li><a href="{{ url('/gdpr-settings') }}">GDPR Cookies</a></li>
-															</ul>
-														</li>
+
 														<li class="submenu">
 															<a href="javascript:void(0);"><i data-feather="credit-card"></i><span>Financial Settings</span><span class="menu-arrow"></span></a>
 															<ul>
-																<li><a href="{{ url('/payment-gateway-settings') }}">Payment Gateway</a></li>
-																<li><a href="{{ url('/bank-settings-grid') }}">Bank Accounts </a></li>
+																
 																<li><a href="{{ url('/tax-rates') }}">Tax Rates</a></li>
 																<li><a href="{{ url('/currency-settings') }}">Currencies</a></li>
 															</ul>
 														</li>
-														<li class="submenu">
-															<a href="javascript:void(0);"><i data-feather="layout"></i><span>Other Settings</span><span class="menu-arrow"></span></a>
-															<ul>
-																<li><a href="{{ url('/storage-settings') }}">Storage</a></li>
-																<li><a href="{{ url('/ban-ip-address') }}">Ban IP Address </a></li>
-															</ul>
-														</li>
+
 													</ul>								
 												</li>
 												

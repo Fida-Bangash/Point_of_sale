@@ -285,9 +285,6 @@
 						<li><a href="{{ url('/roles-permissions') }}"
 								class="{{ request()->is('roles-permissions') ? 'active' : '' }}"><i
 									data-feather="shield"></i><span>Roles & Permissions</span></a></li>
-						<li><a href="{{ url('/delete-account') }}"
-								class="{{ request()->is('delete-account') ? 'active' : '' }}"><i
-									data-feather="lock"></i><span>Delete Account Request</span></a></li>
 					</ul>
 				</li>
 				@endif
@@ -307,16 +304,8 @@
 							<a href="javascript:void(0);"><i data-feather="settings"></i><span>General
 									Settings</span><span class="menu-arrow"></span></a>
 							<ul>
-								<li><a href="{{ url('/general-settings') }}"
-										class="{{ request()->is('general-settings') ? 'active' : '' }}">Profile</a></li>
-								<li><a href="{{ url('/security-settings') }}"
-										class="{{ request()->is('security-settings') ? 'active' : '' }}">Security</a>
-								</li>
 								<li><a href="{{ url('/notification') }}"
 										class="{{ request()->is('notification') ? 'active' : '' }}">Notifications</a>
-								</li>
-								<li><a href="{{ url('/connected-apps') }}"
-										class="{{ request()->is('connected-apps') ? 'active' : '' }}">Connected Apps</a>
 								</li>
 							</ul>
 						</li>
@@ -324,27 +313,11 @@
 							<a href="javascript:void(0);"><i data-feather="globe"></i><span>Website Settings</span><span
 									class="menu-arrow"></span></a>
 							<ul>
-								<li><a href="{{ url('/system-settings') }}"
-										class="{{ request()->is('system-settings') ? 'active' : '' }}">System
-										Settings</a></li>
 								<li><a href="{{ url('/company-settings') }}"
 										class="{{ request()->is('company-settings') ? 'active' : '' }}">Company Settings
 									</a></li>
-								<li><a href="{{ url('/localization-settings') }}"
-										class="{{ request()->is('localization-settings') ? 'active' : '' }}">Localization</a>
-								</li>
 								<li><a href="{{ url('/prefixes') }}"
 										class="{{ request()->is('prefixes') ? 'active' : '' }}">Prefixes</a></li>
-								<li><a href="{{ url('/preference') }}"
-										class="{{ request()->is('preference') ? 'active' : '' }}">Preference</a></li>
-								<li><a href="{{ url('/appearance') }}"
-										class="{{ request()->is('appearance') ? 'active' : '' }}">Appearance</a></li>
-								<li><a href="{{ url('/social-authentication') }}"
-										class="{{ request()->is('social-authentication') ? 'active' : '' }}">Social
-										Authentication</a></li>
-								<li><a href="{{ url('/language-settings') }}"
-										class="{{ request()->is('language-settings') ? 'active' : '' }}">Language</a>
-								</li>
 							</ul>
 						</li>
 						<li class="submenu">
@@ -358,25 +331,6 @@
 										class="{{ request()->is('printer-settings') ? 'active' : '' }}">Printer</a></li>
 								<li><a href="{{ url('/pos-settings') }}"
 										class="{{ request()->is('pos-settings') ? 'active' : '' }}">POS</a></li>
-								<li><a href="{{ url('/custom-fields') }}"
-										class="{{ request()->is('custom-fields') ? 'active' : '' }}">Custom Fields</a>
-								</li>
-							</ul>
-						</li>
-						<li class="submenu">
-							<a href="javascript:void(0);"><i data-feather="monitor"></i>
-								<span>System Settings</span><span class="menu-arrow"></span>
-							</a>
-							<ul>
-								<li><a href="{{ url('/email-settings') }}"
-										class="{{ request()->is('email-settings') ? 'active' : '' }}">Email</a></li>
-								<li><a href="{{ url('/sms-gateway') }}"
-										class="{{ request()->is('sms-gateway') ? 'active' : '' }}">SMS Gateways</a></li>
-								<li><a href="{{ url('/otp-settings') }}"
-										class="{{ request()->is('otp-settings') ? 'active' : '' }}">OTP</a></li>
-								<li><a href="{{ url('/gdpr-settings') }}"
-										class="{{ request()->is('gdpr-settings') ? 'active' : '' }}">GDPR Cookies</a>
-								</li>
 							</ul>
 						</li>
 						<li class="submenu">
@@ -384,12 +338,6 @@
 								<span>Settings</span><span class="menu-arrow"></span>
 							</a>
 							<ul>
-								<li><a href="{{ url('/payment-gateway-settings') }}"
-										class="{{ request()->is('payment-gateway-settings') ? 'active' : '' }}">Payment
-										Gateway</a></li>
-								<li><a href="{{ url('/bank-settings-grid') }}"
-										class="{{ request()->is('bank-settings-grid') ? 'active' : '' }}">Bank
-										Accounts</a></li>
 								<li><a href="{{ url('/tax-rates') }}"
 										class="{{ request()->is('tax-rates') ? 'active' : '' }}">Tax Rates</a></li>
 								<li><a href="{{ url('/currency-settings') }}"
@@ -402,17 +350,12 @@
 								<span>Other Settings</span><span class="menu-arrow"></span>
 							</a>
 							<ul>
-								<li><a href="{{ url('/storage-settings') }}"
-										class="{{ request()->is('storage-settings') ? 'active' : '' }}">Storage</a></li>
 								<li><a href="{{ url('/backup') }}" 
 									class="{{ request()->is('backup') ? 'active' : '' }}">Backup</a></li>
 									<li><a href="{{ url('/sync') }}"
     class="{{ request()->is('sync') ? 'active' : '' }}">Cloud Sync</a></li>
 									<li><a href="{{ url('/updates') }}"
 										class="{{ request()->is('updates') ? 'active' : '' }}">Updates</a></li>
-								<li><a href="{{ url('/ban-ip-address') }}"
-										class="{{ request()->is('ban-ip-address') ? 'active' : '' }}">Ban IP Address</a>
-								</li>
 							</ul>
 						</li>
 						<li>
@@ -803,9 +746,6 @@
 					<li><a href="{{ url('/roles-permissions') }}"
 							class="{{ request()->is('roles-permissions') ? 'active' : '' }}"><span>Roles &
 								Permissions</span></a></li>
-					<li><a href="{{ url('/delete-account') }}"
-							class="{{ request()->is('delete-account') ? 'active' : '' }}"><span>Delete Account
-								Request</span></a></li>
 
 				</ul>
 				@endif
@@ -814,40 +754,18 @@
 					<li class="submenu">
 						<a href="javascript:void(0);"><span>General Settings</span><span class="menu-arrow"></span></a>
 						<ul>
-							<li><a href="{{ url('/general-settings') }}"
-									class="{{ request()->is('general-settings') ? 'active' : '' }}">Profile</a></li>
-							<li><a href="{{ url('/security-settings') }}"
-									class="{{ request()->is('security-settings') ? 'active' : '' }}">Security</a></li>
 							<li><a href="{{ url('/notification') }}"
 									class="{{ request()->is('notification') ? 'active' : '' }}">Notifications</a></li>
-							<li><a href="{{ url('/connected-apps') }}"
-									class="{{ request()->is('connected-apps') ? 'active' : '' }}">Connected Apps</a>
-							</li>
 						</ul>
 					</li>
 					<li class="submenu">
 						<a href="javascript:void(0);"><span>Website Settings</span><span class="menu-arrow"></span></a>
 						<ul>
-							<li><a href="{{ url('/system-settings') }}"
-									class="{{ request()->is('system-settings') ? 'active' : '' }}">System Settings</a>
-							</li>
 							<li><a href="{{ url('/company-settings') }}"
 									class="{{ request()->is('company-settings') ? 'active' : '' }}">Company Settings
 								</a></li>
-							<li><a href="{{ url('/localization-settings') }}"
-									class="{{ request()->is('localization-settings') ? 'active' : '' }}">Localization</a>
-							</li>
 							<li><a href="{{ url('/prefixes') }}"
 									class="{{ request()->is('prefixes') ? 'active' : '' }}">Prefixes</a></li>
-							<li><a href="{{ url('/preference') }}"
-									class="{{ request()->is('preference') ? 'active' : '' }}">Preference</a></li>
-							<li><a href="{{ url('/appearance') }}"
-									class="{{ request()->is('appearance') ? 'active' : '' }}">Appearance</a></li>
-							<li><a href="{{ url('/social-authentication') }}"
-									class="{{ request()->is('social-authentication') ? 'active' : '' }}">Social
-									Authentication</a></li>
-							<li><a href="{{ url('/language-settings') }}"
-									class="{{ request()->is('language-settings') ? 'active' : '' }}">Language</a></li>
 						</ul>
 					</li>
 					<li class="submenu">
@@ -859,33 +777,12 @@
 									class="{{ request()->is('printer-settings') ? 'active' : '' }}">Printer</a></li>
 							<li><a href="{{ url('/pos-settings') }}"
 									class="{{ request()->is('pos-settings') ? 'active' : '' }}">POS</a></li>
-							<li><a href="{{ url('/custom-fields') }}"
-									class="{{ request()->is('custom-fields') ? 'active' : '' }}">Custom Fields</a></li>
-						</ul>
-					</li>
-					<li class="submenu">
-						<a href="javascript:void(0);"><span>System Settings</span><span class="menu-arrow"></span></a>
-						<ul>
-							<li><a href="{{ url('/email-settings') }}"
-									class="{{ request()->is('email-settings') ? 'active' : '' }}">Email</a></li>
-							<li><a href="{{ url('/sms-gateway') }}"
-									class="{{ request()->is('sms-gateway') ? 'active' : '' }}">SMS Gateways</a></li>
-							<li><a href="{{ url('/otp-settings') }}"
-									class="{{ request()->is('otp-settings') ? 'active' : '' }}">OTP</a></li>
-							<li><a href="{{ url('/gdpr-settings') }}"
-									class="{{ request()->is('gdpr-settings') ? 'active' : '' }}">GDPR Cookies</a></li>
 						</ul>
 					</li>
 					<li class="submenu">
 						<a href="javascript:void(0);"><span>Financial Settings</span><span
 								class="menu-arrow"></span></a>
 						<ul>
-							<li><a href="{{ url('/payment-gateway-settings') }}"
-									class="{{ request()->is('payment-gateway-settings') ? 'active' : '' }}">Payment
-									Gateway</a></li>
-							<li><a href="{{ url('/bank-settings-grid') }}"
-									class="{{ request()->is('bank-settings-grid') ? 'active' : '' }}">Bank Accounts</a>
-							</li>
 							<li><a href="{{ url('/tax-rates') }}"
 									class="{{ request()->is('tax-rates') ? 'active' : '' }}">Tax Rates</a></li>
 							<li><a href="{{ url('/currency-settings') }}"
@@ -895,17 +792,12 @@
 					<li class="submenu">
 						<a href="javascript:void(0);"><span>Other Settings</span><span class="menu-arrow"></span></a>
 						<ul>
-							<li><a href="{{ url('/storage-settings') }}"
-									class="{{ request()->is('storage-settings') ? 'active' : '' }}">Storage</a></li>
 									<li><a href="{{ url('/backup') }}"
 										class="{{ request()->is('backup') ? 'active' : '' }}">Backup</a></li>
 										<li><a href="{{ url('/sync') }}"
     class="{{ request()->is('sync') ? 'active' : '' }}">Cloud Sync</a></li>
 										<li><a href="{{ url('/updates') }}"
 											class="{{ request()->is('updates') ? 'active' : '' }}">Updates</a></li>
-							<li><a href="{{ url('/ban-ip-address') }}"
-									class="{{ request()->is('ban-ip-address') ? 'active' : '' }}">Ban IP Address</a>
-							</li>
 						</ul>
 					</li>
 					<li><a href="javascript:void(0);"><span>Documentation</span></a></li>
@@ -1104,9 +996,6 @@
 							<li><a href="{{ url('/roles-permissions') }}"
 									class="{{ request()->is('roles-permissions') ? 'active' : '' }}"><span>Roles &
 										Permissions</span></a></li>
-							<li><a href="{{ url('/delete-account') }}"
-									class="{{ request()->is('delete-account') ? 'active' : '' }}"><span>Delete Account
-										Request</span></a></li>
 
 						</ul>
 					</li>
@@ -1229,40 +1118,18 @@
 					<li class="submenu">
 						<a href="javascript:void(0);"><span>General Settings</span><span class="menu-arrow"></span></a>
 						<ul>
-							<li><a href="{{ url('/general-settings') }}"
-									class="{{ request()->is('general-settings') ? 'active' : '' }}">Profile</a></li>
-							<li><a href="{{ url('/security-settings') }}"
-									class="{{ request()->is('security-settings') ? 'active' : '' }}">Security</a></li>
 							<li><a href="{{ url('/notification') }}"
 									class="{{ request()->is('notification') ? 'active' : '' }}">Notifications</a></li>
-							<li><a href="{{ url('/connected-apps') }}"
-									class="{{ request()->is('connected-apps') ? 'active' : '' }}">Connected Apps</a>
-							</li>
 						</ul>
 					</li>
 					<li class="submenu">
 						<a href="javascript:void(0);"><span>Website Settings</span><span class="menu-arrow"></span></a>
 						<ul>
-							<li><a href="{{ url('/system-settings') }}"
-									class="{{ request()->is('system-settings') ? 'active' : '' }}">System Settings</a>
-							</li>
 							<li><a href="{{ url('/company-settings') }}"
 									class="{{ request()->is('company-settings') ? 'active' : '' }}">Company Settings
 								</a></li>
-							<li><a href="{{ url('/localization-settings') }}"
-									class="{{ request()->is('localization-settings') ? 'active' : '' }}">Localization</a>
-							</li>
 							<li><a href="{{ url('/prefixes') }}"
 									class="{{ request()->is('prefixes') ? 'active' : '' }}">Prefixes</a></li>
-							<li><a href="{{ url('/preference') }}"
-									class="{{ request()->is('preference') ? 'active' : '' }}">Preference</a></li>
-							<li><a href="{{ url('/appearance') }}"
-									class="{{ request()->is('appearance') ? 'active' : '' }}">Appearance</a></li>
-							<li><a href="{{ url('/social-authentication') }}"
-									class="{{ request()->is('social-authentication') ? 'active' : '' }}">Social
-									Authentication</a></li>
-							<li><a href="{{ url('/language-settings') }}"
-									class="{{ request()->is('language-settings') ? 'active' : '' }}">Language</a></li>
 						</ul>
 					</li>
 					<li class="submenu">
@@ -1274,33 +1141,12 @@
 									class="{{ request()->is('printer-settings') ? 'active' : '' }}">Printer</a></li>
 							<li><a href="{{ url('/pos-settings') }}"
 									class="{{ request()->is('pos-settings') ? 'active' : '' }}">POS</a></li>
-							<li><a href="{{ url('/custom-fields') }}"
-									class="{{ request()->is('custom-fields') ? 'active' : '' }}">Custom Fields</a></li>
-						</ul>
-					</li>
-					<li class="submenu">
-						<a href="javascript:void(0);"><span>System Settings</span><span class="menu-arrow"></span></a>
-						<ul>
-							<li><a href="{{ url('/email-settings') }}"
-									class="{{ request()->is('email-settings') ? 'active' : '' }}">Email</a></li>
-							<li><a href="{{ url('/sms-gateway') }}"
-									class="{{ request()->is('sms-gateway') ? 'active' : '' }}">SMS Gateways</a></li>
-							<li><a href="{{ url('/otp-settings') }}"
-									class="{{ request()->is('otp-settings') ? 'active' : '' }}">OTP</a></li>
-							<li><a href="{{ url('/gdpr-settings') }}"
-									class="{{ request()->is('gdpr-settings') ? 'active' : '' }}">GDPR Cookies</a></li>
 						</ul>
 					</li>
 					<li class="submenu">
 						<a href="javascript:void(0);"><span>Financial Settings</span><span
 								class="menu-arrow"></span></a>
 						<ul>
-							<li><a href="{{ url('/payment-gateway-settings') }}"
-									class="{{ request()->is('payment-gateway-settings') ? 'active' : '' }}">Payment
-									Gateway</a></li>
-							<li><a href="{{ url('/bank-settings-grid') }}"
-									class="{{ request()->is('bank-settings-grid') ? 'active' : '' }}">Bank Accounts</a>
-							</li>
 							<li><a href="{{ url('/tax-rates') }}"
 									class="{{ request()->is('tax-rates') ? 'active' : '' }}">Tax Rates</a></li>
 							<li><a href="{{ url('/currency-settings') }}"
@@ -1310,17 +1156,12 @@
 					<li class="submenu">
 						<a href="javascript:void(0);"><span>Other Settings</span><span class="menu-arrow"></span></a>
 						<ul>
-							<li><a href="{{ url('/storage-settings') }}"
-									class="{{ request()->is('storage-settings') ? 'active' : '' }}">Storage</a></li>
 									<li><a href="{{ url('/backup') }}"
 										class="{{ request()->is('backup') ? 'active' : '' }}">Backup</a></li>
 										<li><a href="{{ url('/sync') }}"
     class="{{ request()->is('sync') ? 'active' : '' }}">Cloud Sync</a></li>
 										<li><a href="{{ url('/updates') }}"
 											class="{{ request()->is('updates') ? 'active' : '' }}">Updates</a></li>
-							<li><a href="{{ url('/ban-ip-address') }}"
-									class="{{ request()->is('ban-ip-address') ? 'active' : '' }}">Ban IP Address</a>
-							</li>
 						</ul>
 					</li>
 					<li><a href="javascript:void(0);"><span>Documentation</span></a></li>
