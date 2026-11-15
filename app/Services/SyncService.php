@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ShopSetting;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -23,7 +24,10 @@ class SyncService
         'brands'     => Brand::class,
         'products'   => Product::class,
         'users'      => User::class,
+        'shop_settings' => ShopSetting::class,
     ];
+
+    public const IMAGE_COLUMNS = ['products' => 'image', 'shop_settings' => 'logo'];
 
     public static function queue(string $table, string $uuid, string $action): void
     {
@@ -151,11 +155,12 @@ class SyncService
 
                 $rejected = [];
                 try {
-                    if ($table === 'products') {
+                    $imageColumn = self::IMAGE_COLUMNS[$table] ?? null;
+                    if ($imageColumn) {
                         foreach ($upserts as $row) {
-                            $this->pushImage($client, $row['image'] ?? null);
+                            $this->pushImage($client, $row[$imageColumn] ?? null);
+                            }
                         }
-                    }
                     $res = $client()->post('push', compact('table', 'upserts', 'deletes'))->throw();
                     $rejected = collect($res->json('rejected', []))->pluck('uuid')->filter()->all();
                 } catch (\Throwable $e) {
@@ -276,10 +281,11 @@ class SyncService
                     $res = $client()->get('pull', ['table' => $table, 'after' => $after])->throw()->json();
                     foreach ($res['rows'] as $row) {
                         $class::applyFromServer($row);
-                        if ($table === 'products' && ! empty($row['image'])) {
-                            $images[] = $row['image'];
-                        }
-                    }
+                        $imageColumn = self::IMAGE_COLUMNS[$table] ?? null;
+                            if ($imageColumn && ! empty($row[$imageColumn])) {
+                                $images[] = $row[$imageColumn];
+                                    }
+                                }
                     $after = $res['last_id'] ?? $after;
                 } while (count($res['rows']) >= 200);
             }
@@ -297,7 +303,7 @@ class SyncService
     private function pullImage(\Closure $client, string $image): void
     {
         // Network se aaya hua path kabhi trust nahi karna
-        if (! preg_match('#^products/[A-Za-z0-9][A-Za-z0-9._-]*$#', $image)) {
+        if (! preg_match('#^(products|shop)/[A-Za-z0-9][A-Za-z0-9._-]*$#', $image)) {
             return;
         }
 

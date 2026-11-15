@@ -9,6 +9,9 @@ use Native\Desktop\Events\AutoUpdater\Error as UpdateError;
 use Native\Desktop\Events\AutoUpdater\UpdateAvailable;
 use Native\Desktop\Events\AutoUpdater\UpdateDownloaded;
 use Native\Desktop\Events\AutoUpdater\UpdateNotAvailable;
+use App\Models\ShopSetting;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +28,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        View::composer('layouts.app', function ($view) {
+            try {
+                $view->with('shop', ShopSetting::current());
+            } catch (QueryException) {
+                $view->with('shop', null); // migrate abhi nahi chala
+            }
+        });
+
         Event::listen(UpdateAvailable::class, function ($event) {
             Cache::forever('update.status', 'available');
             Cache::forever('update.version', $event->version ?? null);

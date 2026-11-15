@@ -5,13 +5,13 @@
 			<!-- Logo -->
 			<div class="header-left active">
 				<a href="{{ url('/') }}" class="logo logo-normal">
-					<img src="{{ asset('assets/img/logo.png') }}" alt="">
+				<img src="{{ $shop?->logoUrl() ?? asset('assets/img/logo.png') }}" alt="{{ $shop?->shop_name }}" style="max-height:40px;width:auto;">
 				</a>
 				<a href="{{ url('/') }}" class="logo logo-white">
-					<img src="{{ asset('assets/img/logo-white.png') }}" alt="">
+				<img src="{{ $shop?->logoUrl() ?? asset('assets/img/logo-white.png') }}" alt="{{ $shop?->shop_name }}" style="max-height:40px;width:auto;">
 				</a>
 				<a href="{{ url('/') }}" class="logo-small">
-					<img src="{{ asset('assets/img/logo-small.png') }}" alt="">
+				<img src="{{ $shop?->logoUrl() ?? asset('assets/img/logo-small.png') }}" alt="{{ $shop?->shop_name }}" style="max-height:40px;width:auto;">
 				</a>
 				<a id="toggle_btn" href="javascript:void(0);">
 					<i data-feather="chevrons-left" class="feather-16"></i>
@@ -289,7 +289,7 @@
 				<div class="dropdown-menu dropdown-menu-right">
 					<a class="dropdown-item" href="{{ url('/profile') }}">My Profile</a>
 					<a class="dropdown-item" href="{{ url('/profile') }}">Settings</a>
-					  <a class="dropdown-item logout pb-0" href="#"
+					<a class="dropdown-item logout pb-0" href="#"
      					onclick="event.preventDefault(); document.getElementById('logout-form').submit();">...Logout</a>
 				</div>
 			</div>

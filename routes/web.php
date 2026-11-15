@@ -14,36 +14,17 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\RecoveryController;
+use App\Http\Controllers\ShopSettingController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web routes
-|--------------------------------------------------------------------------
-| Har page ka URL = /file-name aur route name = file-name (pehle jaisa).
-|
-| Kisi page ko doosre role ko dena ho to uska naam neeche ki ek list se
-| kaat kar doosri list mein daal do. Naya page = list mein naam add karo.
-|
-| NOTE: 'role' middleware bootstrap/app.php mein alias ho chuka hona chahiye
-| aur 3 controllers (Login, Register, User) bane hone chahiye, warna
-| `php artisan route:list` error dega.
-*/
 
-// Helper: naamon ki list se Route::view banata hai (URL = /naam, name = naam)
 $pages = function (array $names): void {
     foreach ($names as $name) {
         Route::view("/{$name}", "pages.{$name}")->name($name);
     }
 };
 
-/*
-|--------------------------------------------------------------------------
-| 1) Bina login wale (guest) pages: sign in, register
-|--------------------------------------------------------------------------
-| Login ho chuka user inhe kholega to '/' par bhej diya jayega.
-| /register sirf tab khulta hai jab koi user mojood na ho (controller check karta hai).
-*/
+
 Route::middleware('guest')->group(function () {
     Route::get('/signin', [LoginController::class, 'show'])->name('signin');
     Route::post('/signin', [LoginController::class, 'store'])->middleware('throttle:5,1');
@@ -61,22 +42,13 @@ Route::middleware('guest')->group(function () {
     Route::get('/recovery-code', [RecoveryController::class, 'show'])->name('recovery.show');
     Route::post('/recovery-code', [RecoveryController::class, 'done'])->name('recovery.done');
 
-/*
-|--------------------------------------------------------------------------
-| 2) Public pages (login ke baghair khulne wale)
-|--------------------------------------------------------------------------
-| forgot/reset password abhi sirf design hain, baad mein asli banenge.
-*/
+
 $pages([
     'coming-soon', 'under-maintenance', 'error-404',
     'error-500', 'reset-password',
 ]);
 
-/*
-|--------------------------------------------------------------------------
-| 3) Sirf login wale users
-|--------------------------------------------------------------------------
-*/
+
 Route::middleware('auth')->group(function () use ($pages) {
     
     Route::get('/media/{path}', function (string $path) {
@@ -88,12 +60,11 @@ Route::middleware('auth')->group(function () use ($pages) {
         return $disk->response($path);
     })->where('path', '.+')->name('media');
 
-    // Logout POST se hona chahiye (GET se koi bhi logout karwa sakta hai)
+    
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::post('/sync/run', [SyncController::class, 'run'])->name('sync.run');
 
-    // ---- Sab roles: dashboard, profile ----
     Route::view('/', 'pages.index')->name('index');
     $pages([
     'notification',
@@ -104,7 +75,7 @@ Route::middleware('auth')->group(function () use ($pages) {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/profile/recovery-code', [RecoveryController::class, 'regenerate'])->name('profile.recovery');
 
-    // ---- POS / bikri: admin, manager, cashier ----
+
     Route::middleware('role:admin,manager,cashier')->group(function () use ($pages) {
         $pages([
             'pos', 'sales-list', 'sales-returns',
@@ -112,7 +83,7 @@ Route::middleware('auth')->group(function () use ($pages) {
         ]);
     });
 
-    // ---- Products / stock / purchase: admin, manager, stock ----
+  
     Route::middleware('role:admin,manager,stock')->group(function () use ($pages) {
     $pages([
         'sub-categories', 'varriant-attributes',
@@ -150,7 +121,7 @@ Route::middleware('auth')->group(function () use ($pages) {
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 });
 
-    // ---- Reports aur hisab-kitab: admin, manager ----
+    
     Route::middleware('role:admin,manager')->group(function () use ($pages) {
         $pages([
             'sales-dashboard', 'sales-report', 'purchase-report',
@@ -161,7 +132,7 @@ Route::middleware('auth')->group(function () use ($pages) {
         ]);
     });
 
-    // ---- Sirf admin: users, roles, settings, HR ----
+    
     Route::middleware('role:admin')->group(function () use ($pages) {
         Route::resource('users', UserController::class)->only(['index', 'store', 'update']);
         
@@ -177,10 +148,13 @@ Route::middleware('auth')->group(function () use ($pages) {
         Route::post('/updates/download', [UpdateController::class, 'download'])->name('updates.download');
         Route::post('/updates/install', [UpdateController::class, 'install'])->name('updates.install');
 
+        Route::get('/company-settings', [ShopSettingController::class, 'edit'])->name('company-settings');
+        Route::put('/company-settings', [ShopSettingController::class, 'update'])->name('company-settings.update');
+
     
 
         $pages([
-            'roles-permissions', 'permissions', 'company-settings',
+            'roles-permissions', 'permissions',
             'currency-settings',
             'invoice-settings', 'pos-settings', 'printer-settings',
             'prefixes', 'tax-rates',
@@ -196,13 +170,7 @@ Route::middleware('auth')->group(function () use ($pages) {
     });
 });
 
-/*
-|--------------------------------------------------------------------------
-| 4) Template ke demo pages (icons, charts, form demos, -2/-3 login pages...)
-|--------------------------------------------------------------------------
-| Ye asli POS ka hissa nahi, sirf design dekhne ke liye hain. Production mein
-| band rehte hain (sirf APP_ENV=local par khulte hain).
-*/
+
 if (app()->environment('local')) {
     $pages([
         'blank-page', 'data-tables', 'tables-basic',

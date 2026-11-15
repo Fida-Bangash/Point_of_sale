@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="POS - Admin Panel">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', config('app.name'))</title>
+    <title>{{ $shop?->shop_name ?? config('app.name') }}</title>
 
     @include('partials.head')
     @stack('styles')
