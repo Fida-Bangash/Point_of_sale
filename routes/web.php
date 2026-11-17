@@ -15,6 +15,8 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\RecoveryController;
 use App\Http\Controllers\ShopSettingController;
+use App\Http\Controllers\PosController;
+use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -76,14 +78,23 @@ Route::middleware('auth')->group(function () use ($pages) {
     Route::post('/profile/recovery-code', [RecoveryController::class, 'regenerate'])->name('profile.recovery');
 
 
-    Route::middleware('role:admin,manager,cashier')->group(function () use ($pages) {
+        // ---- POS / sales: admin, manager, cashier ----
+        Route::middleware('role:admin,manager,cashier')->group(function () use ($pages) {
+            
+        Route::get('/pos', [PosController::class, 'index'])->name('pos');
+        Route::get('/pos/products', [PosController::class, 'products'])->name('pos.products');
+        Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
+
+        Route::get('/sales-list', [SaleController::class, 'index'])->name('sales-list');
+        Route::get('/sales/{sale}/receipt', [SaleController::class, 'receipt'])->name('sales.receipt');
+
         $pages([
-            'pos', 'sales-list', 'sales-returns',
+            'sales-returns',
             'customers', 'quotation-list',
         ]);
     });
 
-  
+
     Route::middleware('role:admin,manager,stock')->group(function () use ($pages) {
     $pages([
         'sub-categories', 'varriant-attributes',

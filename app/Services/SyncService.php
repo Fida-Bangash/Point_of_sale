@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\ShopSetting;
 use App\Models\Unit;
 use App\Models\User;
@@ -25,6 +27,8 @@ class SyncService
         'products'   => Product::class,
         'users'      => User::class,
         'shop_settings' => ShopSetting::class,
+        'sales'         => Sale::class,
+        'sale_items'    => SaleItem::class,
     ];
 
     public const IMAGE_COLUMNS = ['products' => 'image', 'shop_settings' => 'logo'];
