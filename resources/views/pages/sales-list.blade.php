@@ -15,6 +15,13 @@
 			</div>
 		</div>
 
+		@if(session('status'))
+		<div class="alert alert-success">{{ session('status') }}</div>
+		@endif
+		@if($errors->any())
+		<div class="alert alert-danger">{{ $errors->first() }}</div>
+		@endif
+
 		<div class="row mb-3">
 			<div class="col-md-6">
 				<div class="card mb-0"><div class="card-body">
@@ -47,6 +54,7 @@
 								<th>Customer</th>
 								<th>Items</th>
 								<th>Payment</th>
+								<th>Status</th>
 								<th class="text-end">Total</th>
 								<th></th>
 							</tr>
@@ -60,13 +68,22 @@
 								<td>{{ $sale->customer_name ?: 'Walk-in' }}</td>
 								<td>{{ $sale->items_count }}</td>
 								<td>{{ $sale->paymentLabel() }}</td>
+								<td>
+									<span class="badge {{ $sale->statusBadgeClass() }}">{{ $sale->statusLabel() }}</span>
+									@if($sale->isExchangeSale())<span class="badge bg-info">Exchange</span>@endif
+								</td>
+								
 								<td class="text-end">{{ $shop->money($sale->total) }}</td>
 								<td class="text-end">
 									<a href="{{ route('sales.receipt', $sale) }}" class="btn btn-sm btn-outline-primary">Receipt</a>
+									@if(auth()->user()->hasRole('admin', 'manager') && $sale->status !== \App\Models\Sale::STATUS_RETURNED)
+									<a href="{{ route('sales.return.create', $sale) }}" class="btn btn-sm btn-outline-danger">Return</a>
+									<a href="{{ route('sales.exchange.create', $sale) }}" class="btn btn-sm btn-outline-warning">Exchange</a>
+									@endif
 								</td>
 							</tr>
 							@empty
-							<tr><td colspan="8" class="text-center text-muted">No sales yet.</td></tr>
+							<tr><td colspan="9" class="text-center text-muted">No sales yet.</td></tr>
 							@endforelse
 						</tbody>
 					</table>

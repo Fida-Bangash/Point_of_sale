@@ -20,7 +20,8 @@
 
     <div class="main-wrapper">
         @include('partials.header')
-        @include('partials.sidebar')
+        {{-- Desktop (NativePHP) app gets the short sidebar; the website keeps the full one --}}
+        @include(config('nativephp-internal.running') ? 'partials.sidebar-native' : 'partials.sidebar')
 
         @yield('content')
 

@@ -89,6 +89,10 @@
 			<tr><td>Discount</td><td class="right">- {{ $shop->money($sale->discount) }}</td></tr>
 			@endif
 			<tr class="total-row"><td>TOTAL</td><td class="right">{{ $shop->money($sale->total) }}</td></tr>
+			@if((float) $sale->exchange_credit > 0)
+			<tr><td>Exchange credit</td><td class="right">- {{ $shop->money($sale->exchange_credit) }}</td></tr>
+			<tr><td>To pay</td><td class="right">{{ $shop->money($sale->total - $sale->exchange_credit) }}</td></tr>
+			@endif
 			<tr><td>Paid ({{ $sale->paymentLabel() }})</td><td class="right">{{ $shop->money($sale->paid) }}</td></tr>
 			<tr><td>Change</td><td class="right">{{ $shop->money($sale->change_amount) }}</td></tr>
 		</table>
@@ -98,5 +102,9 @@
 		<div class="center">{{ $shop->receipt_footer }}</div>
 		@endif
 	</div>
+
+		@if(request()->boolean('print'))
+	<script>window.addEventListener('load', function () { window.print(); });</script>
+	@endif
 </body>
 </html>

@@ -17,9 +17,12 @@ class SaleTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function makeProduct(array $over = []): Product
+        private function makeProduct(array $over = []): Product
     {
-        $category = Category::create(['name' => 'Food', 'slug' => 'food', 'is_active' => true]);
+        $category = Category::firstOrCreate(
+            ['name' => 'Food'],
+            ['slug' => 'food', 'is_active' => true]
+        );
         $unit = Unit::query()->first()
             ?? Unit::forceCreate(['name' => 'Piece', 'short_name' => 'pc', 'is_active' => true]);
 
@@ -158,5 +161,36 @@ class SaleTest extends TestCase
         $this->assertSame($cashier->id, $sale->user_id);
         $this->assertSame($sale->id, $item->sale_id);
         $this->assertSame($product->id, $item->product_id);
+    }
+
+        public function test_pos_products_hide_cost_and_margin_from_cashier_but_not_from_admin(): void
+    {
+        $this->makeProduct();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $admin   = User::factory()->create(['role' => 'admin']);
+
+        $cashierRows = $this->actingAs($cashier)->getJson('/pos/products')->assertOk()->json();
+        $this->assertSame('Biscuit', $cashierRows[0]['name']);
+        $this->assertArrayNotHasKey('profit', $cashierRows[0]);
+        $this->assertArrayNotHasKey('margin_pct', $cashierRows[0]);
+
+        $adminRows = $this->actingAs($admin)->getJson('/pos/products')->assertOk()->json();
+        $this->assertEquals(40, $adminRows[0]['profit']);
+        $this->assertEquals(40, $adminRows[0]['margin_pct']);
+    }
+
+    public function test_pos_products_put_sold_out_last_and_can_filter_by_category(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+
+        $this->makeProduct(['name' => 'Aaa Sold Out', 'barcode' => '1', 'quantity' => 0]);
+        $this->makeProduct(['name' => 'Zzz In Stock', 'barcode' => '2', 'quantity' => 5]);
+
+        $rows = $this->actingAs($cashier)->getJson('/pos/products')->assertOk()->json();
+        $this->assertSame(['Zzz In Stock', 'Aaa Sold Out'], array_column($rows, 'name'));
+
+        $other = Category::create(['name' => 'Drinks', 'slug' => 'drinks', 'is_active' => true]);
+        $this->actingAs($cashier)->getJson('/pos/products?category=' . $other->id)
+            ->assertOk()->assertExactJson([]);
     }
 }

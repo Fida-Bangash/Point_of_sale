@@ -88,6 +88,9 @@ return [
         'content',
         'node_modules',
         '*/tests',
+        '*.rar',
+        '*.zip',
+        '*.7z',
     ],
 
     /**

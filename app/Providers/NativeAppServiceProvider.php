@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-// use Native\Desktop\Facades\Menu;
-use Native\Desktop\Facades\Window;
 use Native\Desktop\Contracts\ProvidesPhpIni;
+use Native\Desktop\Facades\Menu;
+use Native\Desktop\Facades\Window;
 
 class NativeAppServiceProvider implements ProvidesPhpIni
 {
@@ -14,8 +14,16 @@ class NativeAppServiceProvider implements ProvidesPhpIni
      */
     public function boot(): void
     {
-        // Menu::default();
-        Window::open();
+        // An empty menu removes the default File / Edit / View / Window / Help bar.
+        // It must never stop the window from opening, so a failure is only logged.
+        try {
+            Menu::create();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        // hideMenu() also hides the bar if it ever comes back (Alt shows it temporarily)
+        Window::open()->hideMenu();
     }
 
     /**

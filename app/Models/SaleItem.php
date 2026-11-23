@@ -6,6 +6,7 @@ use App\Models\Concerns\Syncable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'sale_id', 'product_id', 'product_name', 'barcode', 'quantity',
@@ -45,5 +46,10 @@ class SaleItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+        public function returnItems(): HasMany
+    {
+        return $this->hasMany(SaleReturnItem::class);
     }
 }

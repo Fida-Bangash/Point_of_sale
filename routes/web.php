@@ -15,8 +15,11 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\RecoveryController;
 use App\Http\Controllers\ShopSettingController;
+use App\Http\Controllers\HeldBillController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SaleReturnController; 
+use App\Http\Controllers\ExchangeController; 
 use Illuminate\Support\Facades\Route;
 
 
@@ -85,11 +88,16 @@ Route::middleware('auth')->group(function () use ($pages) {
         Route::get('/pos/products', [PosController::class, 'products'])->name('pos.products');
         Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
 
+        // Held bills (paused carts)
+        Route::get('/pos/held', [HeldBillController::class, 'index'])->name('pos.held');
+        Route::post('/pos/held', [HeldBillController::class, 'store'])->name('pos.held.store');
+        Route::get('/pos/held/{uuid}', [HeldBillController::class, 'show'])->whereUuid('uuid')->name('pos.held.show');
+        Route::delete('/pos/held/{uuid}', [HeldBillController::class, 'destroy'])->whereUuid('uuid')->name('pos.held.destroy');
+
         Route::get('/sales-list', [SaleController::class, 'index'])->name('sales-list');
         Route::get('/sales/{sale}/receipt', [SaleController::class, 'receipt'])->name('sales.receipt');
 
         $pages([
-            'sales-returns',
             'customers', 'quotation-list',
         ]);
     });
@@ -134,6 +142,18 @@ Route::middleware('auth')->group(function () use ($pages) {
 
     
     Route::middleware('role:admin,manager')->group(function () use ($pages) {
+
+        Route::get('/sales-returns', [SaleReturnController::class, 'index'])->name('sales-returns');
+        Route::get('/sales-returns/{saleReturn}', [SaleReturnController::class, 'receipt'])->name('sales-returns.receipt');
+        Route::get('/sales/{sale}/return', [SaleReturnController::class, 'create'])->name('sales.return.create');
+        Route::post('/sales/{sale}/return', [SaleReturnController::class, 'store'])->name('sales.return.store');
+
+        // Exchanges: old goods back, new goods out, difference settled (cashiers cannot exchange)
+        Route::get('/exchanges', [ExchangeController::class, 'index'])->name('exchanges');
+        Route::get('/exchanges/{exchange}', [ExchangeController::class, 'receipt'])->name('exchanges.receipt');
+        Route::get('/sales/{sale}/exchange', [ExchangeController::class, 'create'])->name('sales.exchange.create');
+        Route::post('/sales/{sale}/exchange', [ExchangeController::class, 'store'])->name('sales.exchange.store');
+
         $pages([
             'sales-dashboard', 'sales-report', 'purchase-report',
             'purchase-order-report', 'inventory-report', 'invoice-report',

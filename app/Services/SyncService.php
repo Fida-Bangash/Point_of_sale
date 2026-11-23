@@ -7,7 +7,10 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\SaleReturn;        
+use App\Models\SaleReturnItem;
 use App\Models\ShopSetting;
+use App\Models\Exchange;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -29,6 +32,9 @@ class SyncService
         'shop_settings' => ShopSetting::class,
         'sales'         => Sale::class,
         'sale_items'    => SaleItem::class,
+        'sale_returns'      => SaleReturn::class,
+        'sale_return_items' => SaleReturnItem::class,
+        'exchanges'         => Exchange::class,
     ];
 
     public const IMAGE_COLUMNS = ['products' => 'image', 'shop_settings' => 'logo'];
@@ -57,6 +63,14 @@ class SyncService
     {
         self::put('sync_url', rtrim($url, '/'));
         self::put('sync_token', Crypt::encryptString($token));
+    }
+
+    /** Shop code from SYNC_SHOP_CODE in .env; null when not set. */
+    private function shopCode(): ?string
+    {
+        $code = trim((string) (self::get('shop_code') ?: config('sync.shop_code')));
+
+        return $code !== '' ? strtoupper($code) : null;
     }
 
     private function client(): ?\Closure
@@ -89,10 +103,12 @@ class SyncService
         try {
             $res = Http::withHeaders(['X-Enroll-Key' => $key])
                 ->acceptJson()->timeout(10)
-                ->post($url . '/api/sync/enroll', [
+                ->post($url . '/api/sync/enroll', array_filter([
                     'install_id' => $id,
-                    'name' => gethostname() ?: 'POS',
-                ]);
+                    'name'       => gethostname() ?: 'POS',
+                    // Groups the PCs of one shop on the server (optional)
+                    'shop_code'  => $this->shopCode(),
+                ], fn ($v) => $v !== null && $v !== ''));
         } catch (\Throwable) {
             return false;
         }

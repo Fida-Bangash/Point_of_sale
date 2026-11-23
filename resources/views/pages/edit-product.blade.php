@@ -267,4 +267,5 @@
 
 @push('scripts')
 <script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
+@include('partials.select2-zoom-fix')
 @endpush
