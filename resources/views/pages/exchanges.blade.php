@@ -60,10 +60,16 @@
 								<td class="text-end">{{ $shop->money($exchange->returned_value) }}</td>
 								<td class="text-end">{{ $shop->money($exchange->new_value) }}</td>
 								<td class="text-end">
-									@if((float) $exchange->cash_in > 0)
+									@if($exchange->totalDue() > 0)
 										<span class="text-success">Paid {{ $shop->money($exchange->cash_in) }}</span>
-									@elseif((float) $exchange->cash_out > 0)
+										@if((float) $exchange->ledger_in > 0)
+										<span class="text-warning">+ {{ $shop->money($exchange->ledger_in) }} on account</span>
+										@endif
+									@elseif($exchange->totalRefund() > 0)
 										<span class="text-danger">Refunded {{ $shop->money($exchange->cash_out) }}</span>
+										@if((float) $exchange->ledger_out > 0)
+										<span class="text-warning">+ {{ $shop->money($exchange->ledger_out) }} to account</span>
+										@endif
 									@else
 										Even
 									@endif

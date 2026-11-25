@@ -107,9 +107,20 @@
 							<label class="form-label" for="refund_method">Refund via</label>
 							<select name="refund_method" id="refund_method" class="form-select">
 								@foreach($methods as $key => $label)
-								<option value="{{ $key }}" @selected(old('refund_method', $sale->payment_method) === $key)>{{ $label }}</option>
+								<option value="{{ $key }}" @selected(old('refund_method', $defaultMethod) === $key)>{{ $label }}</option>
 								@endforeach
+								@if($customer)
+								<option value="ledger" @selected(old('refund_method', $defaultMethod) === 'ledger')>Customer account (Khata)</option>
+								@endif
 							</select>
+							@if($customer)
+							<div class="form-text">
+								{{ $customer->name }}: "Customer account" takes the refund off what he owes.
+								@if($sale->hasCredit())
+								This bill has {{ $shop->money($sale->credit_amount) }} unpaid, so that part always goes to his account, even if you pick cash.
+								@endif
+							</div>
+							@endif
 						</div>
 						<div class="col-md-8">
 							<label class="form-label" for="reason">Reason</label>

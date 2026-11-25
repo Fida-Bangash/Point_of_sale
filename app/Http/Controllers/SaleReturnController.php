@@ -36,7 +36,8 @@ class SaleReturnController extends Controller
             'returns'     => $returns,
             'q'           => $q,
             'todayCount'  => (clone $today)->count(),
-            'todayRefund' => (clone $today)->sum('refund_total'),
+            // Money handed out; what was taken off a customer's account is not cash leaving the till
+            'todayRefund' => (clone $today)->sum('refund_total') - (clone $today)->sum('ledger_amount'),
         ]);
     }
 
@@ -56,6 +57,11 @@ class SaleReturnController extends Controller
             'states'  => $returns->lineStates($sale),
             'service' => $returns,
             'methods' => Sale::PAYMENT_METHODS,
+            // "Customer account" is only offered for a sale that belongs to a registered customer
+            'customer'      => $sale->customer_id ? $sale->customer()->first() : null,
+            'defaultMethod' => $sale->customer_id && ! array_key_exists($sale->payment_method, Sale::PAYMENT_METHODS)
+                ? ReturnService::REFUND_LEDGER
+                : $sale->payment_method,
         ]);
     }
 
@@ -66,7 +72,7 @@ class SaleReturnController extends Controller
             'items.*.sale_item_id' => ['required', 'integer'],
             'items.*.quantity'     => ['nullable', 'numeric', 'min:0', 'max:99999'],
             'items.*.restock'      => ['nullable', 'boolean'],
-            'refund_method'        => ['nullable', Rule::in(array_keys(Sale::PAYMENT_METHODS))],
+            'refund_method'        => ['nullable', Rule::in([...array_keys(Sale::PAYMENT_METHODS), ReturnService::REFUND_LEDGER])],
             'reason'               => ['nullable', 'string', 'max:255'],
             'note'                 => ['nullable', 'string', 'max:500'],
         ]);

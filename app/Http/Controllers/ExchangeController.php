@@ -51,6 +51,7 @@ class ExchangeController extends Controller
             'states'  => $returns->lineStates($sale),
             'service' => $returns,
             'methods' => Sale::PAYMENT_METHODS,
+            'customer' => $sale->customer_id ? $sale->customer()->first() : null,
         ]);
     }
 
@@ -67,9 +68,15 @@ class ExchangeController extends Controller
             'discount'                    => ['nullable', 'numeric', 'min:0'],
             'paid'                        => ['nullable', 'numeric', 'min:0'],
             'payment_method'              => ['required', Rule::in(array_keys(Sale::PAYMENT_METHODS))],
+            'refund_to'                   => ['nullable', Rule::in(['cash', ReturnService::REFUND_LEDGER])],
+            'override_credit_limit'       => ['nullable', 'boolean'],
             'reason'                      => ['nullable', 'string', 'max:255'],
             'note'                        => ['nullable', 'string', 'max:500'],
         ]);
+
+        // Only admin/manager may push a customer past the credit limit (same rule as the POS checkout)
+        $data['allow_over_limit'] = $request->boolean('override_credit_limit')
+            && in_array($request->user()->role, ['admin', 'manager'], true);
 
         $exchange = $exchanges->create($sale, $data, $request->user()->id);
 

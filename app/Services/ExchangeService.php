@@ -14,6 +14,14 @@ use Illuminate\Validation\ValidationException;
  *   2. new goods go out     -> SaleService    (stock goes down)
  *   3. the difference       -> the customer pays it, or the shop pays it back
  *
+ * Customer accounts (khata): when the original sale belongs to a registered customer, the money
+ * difference does not have to be settled at the counter:
+ *   - the customer pays less than he owes -> the rest goes on his account (a `sale_credit` entry,
+ *     written by SaleService, which also checks the credit limit);
+ *   - the shop owes the customer          -> `refund_to = ledger` credits his account (a
+ *     `return_credit` entry). With `refund_to = cash` only what he really paid in cash is paid
+ *     out; the unpaid part of a credit sale clears his account instead (ReturnService::splitRefund).
+ *
  * Everything runs in ONE transaction. If anything fails (for example the new item is out of
  * stock) nothing at all is saved. The return is made first so goods handed back are already
  * back on the shelf when the stock of the new goods is checked (useful when swapping a
@@ -31,7 +39,8 @@ class ExchangeService
      * @param  array{
      *     return_items: array<int, array{sale_item_id:int, quantity:mixed, restock?:mixed}>,
      *     new_items: array<int, array{product_id:int, quantity:mixed}>,
-     *     discount?: mixed, paid?: mixed, payment_method?: ?string, reason?: ?string, note?: ?string
+     *     discount?: mixed, paid?: mixed, payment_method?: ?string, reason?: ?string, note?: ?string,
+     *     refund_to?: ?string, allow_over_limit?: bool
      * }  $data
      */
     public function create(Sale $original, array $data, ?int $userId): Exchange
@@ -74,7 +83,8 @@ class ExchangeService
                 ? round((float) $data['paid'], 2)
                 : $due;
 
-            if ($paid < $due) {
+            // A walk-in customer must pay in full. A registered customer may leave the rest on his account.
+            if ($paid < $due && $original->customer_id === null) {
                 throw ValidationException::withMessages([
                     'paid' => 'The customer must pay at least ' . number_format($due, 2) . ' for this exchange.',
                 ]);
@@ -88,9 +98,19 @@ class ExchangeService
                 'exchange_credit' => $credit,
                 'paid'            => $paid,
                 'payment_method'  => $method,
-                'customer_name'   => $original->customer_name,
+                'customer_id'      => $original->customer_id,
+                'customer_name'    => $original->customer_name,
+                'allow_over_limit' => (bool) ($data['allow_over_limit'] ?? false),
                 'note'            => "Exchange for {$original->invoice_no}",
             ], $userId);
+
+            // The part of the difference that went on the customer's account instead of the till
+            $ledgerIn = round((float) $sale->credit_amount, 2);
+
+            // 4. If the shop owes money back: pay it out, or credit the customer's account
+            $refundTo  = ($data['refund_to'] ?? null) === ReturnService::REFUND_LEDGER ? ReturnService::REFUND_LEDGER : 'cash';
+            $split     = $this->returns->settle($return, $original, $credit, $refundTo, $userId);
+            $ledgerOut = $split['ledger'];
 
             $exchange = Exchange::create([
                 'exchange_no'      => $this->nextExchangeNo(),
@@ -101,8 +121,10 @@ class ExchangeService
                 'returned_value'   => $returned,
                 'new_value'        => $newTotal,
                 'credit_applied'   => $credit,
-                'cash_in'          => $due,
-                'cash_out'         => $refund,
+                'cash_in'          => round($due - $ledgerIn, 2),   // real money taken at the counter
+                'cash_out'         => round($refund - $ledgerOut, 2), // real money paid out
+                'ledger_in'        => $ledgerIn,
+                'ledger_out'       => $ledgerOut,
                 'payment_method'   => $method,
                 'note'             => $data['note'] ?? null,
                 'exchanged_at'     => now(),

@@ -1,312 +1,65 @@
 @extends('layouts.app')
 
-@section('title', 'Dreams Pos Admin Template')
+@section('title', 'Outstanding Credit')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap5.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/plugins/summernote/summernote-bs4.min.css') }}">
+<style>
+	.bal-owes { color: #ea5455; font-weight: 600; }
+	.stat-card { padding: 18px 20px; border: 1px solid #edf0f4; border-radius: 12px; background: #fff; height: 100%; }
+	.stat-card h4 { margin: 0; font-weight: 700; }
+	.stat-card p { margin: 2px 0 0; color: #6b7280; font-size: 13px; }
+</style>
 @endpush
 
 @section('content')
-<div class="page-wrapper">
-				<div class="content">
-					<div class="page-header">
-						<div class="add-item d-flex">
-							<div class="page-title">
-								<h4>Customer Report</h4>
-								<h6>Manage Your Customer Report</h6>
-							</div>
-						</div>
-						<ul class="table-top-head">
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img src="{{ asset('assets/img/icons/pdf.svg') }}" alt="img"></a>
-							</li>
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img src="{{ asset('assets/img/icons/excel.svg') }}" alt="img"></a>
-							</li>
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img src="{{ asset('assets/img/icons/printer.svg') }}" alt="img"></a>
-							</li>
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="rotate"><i data-feather="rotate-ccw" class="feather-rotate-ccw"></i></a>
-							</li>
-							<li>
-								<a data-bs-toggle="tooltip" data-bs-placement="top" title="up"><i data-feather="chevron-up" class="feather-chevron-up"></i></a>
-							</li>
-						</ul>
-					</div>
-					
+@php $symbol = $shop->currency_symbol ?: 'Rs'; $m = fn ($c) => $symbol . ' ' . \App\Support\Cents::format($c); @endphp
+<div class="page-wrapper"><div class="content">
+	<div class="page-header">
+		<div class="page-title"><h4>Customer credit report</h4><h6>Total outstanding market credit and the biggest debtors</h6></div>
+		<div class="page-btn">
+			<a href="{{ route('customer-report.debtors.csv', ['top' => $top]) }}" class="btn btn-added"><i data-feather="download" class="me-2"></i>Export CSV</a>
+		</div>
+	</div>
 
-					<!-- /product list -->
-					<div class="card table-list-card">
-						<div class="card-body">
-							<div class="table-top">
-								<div class="search-set">
-									<div class="search-input">
-										<a href="" class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
-									</div>
-								</div>
-								<div class="search-path">
-									<div class="d-flex align-items-center">
-										<a class="btn btn-filter" id="filter_search">
-											<i data-feather="filter" class="filter-icon"></i>
-											<span><img src="{{ asset('assets/img/icons/closes.svg') }}" alt="img"></span>
-										</a>
-										
-									</div>
-									
-								</div>
-								<div class="form-sort">
-									<i data-feather="sliders" class="info-img"></i>
-									<select class="select">
-										<option>Sort by Date</option>
-										<option>27 9 23</option>
-										<option>10 9 23</option>
-									</select>
-								</div>
-							</div>
-							<!-- /Filter -->
-							<div class="card" id="filter_inputs">
-								<div class="card-body pb-0">
-									<div class="row">
-										<div class="col-lg-2 col-sm-6 col-12">
-											<div class="input-blocks">
-												<i data-feather="user" class="info-img"></i>
-												<select class="select">
-													<option>Choose Name</option>
-													<option>Rose</option>
-													<option>Kaitlin</option>
-												</select>
-											</div>
-										</div>
-										<div class="col-lg-2 col-sm-6 col-12">
-											<div class="input-blocks">
-												<i data-feather="user" class="info-img"></i>
-												<select class="select">
-													<option>Choose ID</option>
-													<option>CT_0003</option>
-													<option>CT_0004</option>
-													<option>CT_0005</option>
-												</select>
-											</div>
-										</div>
-										<div class="col-lg-2 col-sm-6 col-12">
-											<div class="input-blocks">
-												<i data-feather="stop-circle" class="info-img"></i>
-												<select class="select">
-													<option>Choose Status</option>
-													<option>Completed</option>
-													<option>Incompleted</option>
-												</select>
-											</div>
-										</div>
-										<div class="col-lg-3 col-sm-6 col-12">
-											<div class="input-blocks">
-												<img src="{{ asset('assets/img/icons/payment-status.svg') }}" class="info-img status-icon" alt="Icon">
-												<select class="select">
-													<option>Choose Payment Status</option>
-													<option>Paid</option>
-													<option>Unpaid</option>
-													<option>Overdue</option>
-												</select>
-											</div>
-										</div>
-										<div class="col-lg-3 col-sm-6 col-12">
-											<div class="input-blocks">
-												<a class="btn btn-filters ms-auto"> <i data-feather="search" class="feather-search"></i> Search </a>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- /Filter -->
-							<div class="table-responsive">
-								<table class="table datanew">
-									<thead>
-										<tr>
-											<th class="no-sort">
-												<label class="checkboxs">
-													<input type="checkbox" id="select-all">
-													<span class="checkmarks"></span>
-												</label>
-											</th>
-											<th>Customer ID</th>
-											<th>Customer Name</th>
-											<th>Amount</th>
-											<th>Paid</th>
-											<th>Due Amount</th>
-											<th>Status</th>
-											<th>Payment Status</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0001</td>
-											<td>Thomas</td>
-											<td>$1800</td>
-											<td>$1800</td>
-											<td>$0.00</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badge-linesuccess">Paid</span></td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0002</td>
-											<td>Rose</td>
-											<td>$120</td>
-											<td>$0.00</td>
-											<td>$120</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badge badge-linedanger">Unpaid</span></td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0003</td>
-											<td>Benjamin</td>
-											<td>$2000</td>
-											<td>$2000</td>
-											<td>$0.00</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badge-linesuccess">Paid</span></td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0004</td>
-											<td>Kaitlin</td>
-											<td>$1300</td>
-											<td>$1300</td>
-											<td>$1300</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badges-warning">Overdue</span></td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0005</td>
-											<td>Lilly</td>
-											<td>$400</td>
-											<td>$0.00</td>
-											<td>$400</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badge badge-linedanger">Unpaid</span></td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0006</td>
-											<td>Freda</td>
-											<td>$700</td>
-											<td>$700</td>
-											<td>$700</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badges-warning">Overdue</span></td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0007</td>
-											<td>Alwin</td>
-											<td>$800</td>
-											<td>$800</td>
-											<td>$0.00</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badge-linesuccess">Paid</span></td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0008</td>
-											<td>Maybelle</td>
-											<td>$300</td>
-											<td>$300</td>
-											<td>$0.00</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badge-linesuccess">Paid</span></td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0009</td>
-											<td>Ellen</td>
-											<td>$120</td>
-											<td>$120</td>
-											<td>$0.00</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badge-linesuccess">Paid</span></td>
-										</tr>
-										<tr>
-											<td>
-												<label class="checkboxs">
-													<input type="checkbox">
-													<span class="checkmarks"></span>
-												</label>
-											</td>
-											<td>CT_0010</td>
-											<td>Grace</td>
-											<td>$600</td>
-											<td>$600</td>
-											<td>$0.00</td>
-											<td><span class="badges status-badge">Completed</span></td>
-											<td><span class="badge-linesuccess">Paid</span></td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-						</div>
-					</div>
-					<!-- /product list -->
-				</div>
-			</div>
+	@include('partials.credit-report-nav')
+
+	<div class="row g-3 mb-3">
+		<div class="col-md-3 col-6"><div class="stat-card"><h4 class="bal-owes">{{ $m($receivable) }}</h4><p>Total outstanding (udhaar)</p></div></div>
+		<div class="col-md-3 col-6"><div class="stat-card"><h4>{{ $debtors }} <small class="text-muted fs-6">of {{ $customers }}</small></h4><p>Customers who owe money</p></div></div>
+		<div class="col-md-3 col-6"><div class="stat-card"><h4>{{ $m($advances) }}</h4><p>Advances held (shop owes customers)</p></div></div>
+		<div class="col-md-3 col-6"><div class="stat-card"><h4 class="{{ $over_limit ? 'bal-owes' : '' }}">{{ $over_limit }}</h4><p>Customers over their credit limit</p></div></div>
+	</div>
+
+	<div class="card"><div class="card-body">
+		<form method="GET" class="d-flex align-items-center gap-2 mb-3">
+			<label class="mb-0">Show</label>
+			<select name="top" class="form-select w-auto" onchange="this.form.submit()">
+				@foreach([10 => 'Top 10', 25 => 'Top 25', 50 => 'Top 50', 0 => 'All debtors'] as $v => $l)
+				<option value="{{ $v }}" @selected($top === $v)>{{ $l }}</option>
+				@endforeach
+			</select>
+			<span class="text-muted">sorted by highest outstanding balance</span>
+		</form>
+		<div class="table-responsive">
+			<table class="table">
+				<thead><tr><th>#</th><th>Customer</th><th>Phone</th><th class="text-end">Outstanding</th><th class="text-end">Credit limit</th><th>Last payment</th><th></th></tr></thead>
+				<tbody>
+				@forelse($rows as $i => $r)
+					<tr>
+						<td>{{ $i + 1 }}</td>
+						<td>{{ $r['customer']->name }} @if($r['over'])<span class="badge badge-linedanger">Over limit</span>@endif</td>
+						<td>{{ $r['customer']->phone }}</td>
+						<td class="text-end bal-owes">{{ $m($r['balance']) }}</td>
+						<td class="text-end">{{ $r['limit'] === null ? 'No limit' : $m($r['limit']) }}</td>
+						<td>{{ $r['last_paid']?->format('d M Y') ?? 'Never' }}</td>
+						<td class="text-end"><a href="{{ route('customers.statement', $r['customer']) }}">Statement</a></td>
+					</tr>
+				@empty
+					<tr><td colspan="7" class="text-center text-muted py-4">Nobody owes money.</td></tr>
+				@endforelse
+				</tbody>
+			</table>
+		</div>
+	</div></div>
+</div></div>
 @endsection
-
-@push('scripts')
-<script src="{{ asset('assets/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('assets/js/dataTables.bootstrap5.min.js') }}"></script>
-<script src="{{ asset('assets/js/moment.min.js') }}"></script>
-<script src="{{ asset('assets/js/bootstrap-datetimepicker.min.js') }}"></script>
-<script src="{{ asset('assets/plugins/summernote/summernote-bs4.min.js') }}"></script>
-<script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
-<script src="{{ asset('assets/plugins/sweetalert/sweetalert2.all.min.js') }}"></script>
-<script src="{{ asset('assets/plugins/sweetalert/sweetalerts.min.js') }}"></script>
-@endpush

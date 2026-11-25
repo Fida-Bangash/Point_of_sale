@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class HeldBill extends Model
 {
     protected $fillable = [
-        'uuid', 'user_id', 'customer_name', 'discount', 'total', 'items', 'held_at', 'expires_at',
+        'uuid', 'user_id', 'customer_id', 'customer_name', 'discount', 'total', 'items', 'held_at', 'expires_at',
     ];
 
     protected function casts(): array
@@ -33,6 +33,11 @@ class HeldBill extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     /** Admin and manager see every held bill; everyone else sees only their own. */

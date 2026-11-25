@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Customer;
 use App\Models\HeldBill;
 use App\Models\Product;
 use App\Models\Sale;
@@ -19,7 +20,8 @@ class PosController extends Controller
     {
         return view('pages.pos', [
             'shop'         => ShopSetting::current(),
-            'methods'      => Sale::PAYMENT_METHODS,
+            'methods'      => Sale::checkoutMethods(),
+            'canOverrideCreditLimit' => $this->canOverrideCreditLimit($request),
             'categories'   => Category::where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'canSeeMargin' => $this->canSeeMargin($request),
         ]);
@@ -93,13 +95,20 @@ class PosController extends Controller
             'items.*.quantity'     => ['required', 'numeric', 'gt:0', 'max:99999'],
             'discount'             => ['nullable', 'numeric', 'min:0'],
             'paid'                 => ['required', 'numeric', 'min:0'],
-            'payment_method'       => ['required', Rule::in(array_keys(Sale::PAYMENT_METHODS))],
+            'payment_method'       => ['required', Rule::in(array_keys(Sale::checkoutMethods()))],
+            'customer_id'          => ['nullable', 'integer', 'exists:customers,id'],
             'customer_name'        => ['nullable', 'string', 'max:255'],
+            'override_credit_limit' => ['nullable', 'boolean'],
             'note'                 => ['nullable', 'string', 'max:500'],
             'held_uuid'            => ['nullable', 'uuid'],
         ]);
 
         $user = $request->user();
+
+        // Only admin/manager may push a customer past the credit limit. A cashier who sends the
+        // flag anyway simply gets the normal "limit exceeded" error.
+        $data['allow_over_limit'] = $request->boolean('override_credit_limit')
+            && $this->canOverrideCreditLimit($request);
 
         // The sale and the removal of its held bill succeed or fail together
         $sale = DB::transaction(function () use ($sales, $data, $user) {
@@ -117,6 +126,59 @@ class PosController extends Controller
             'invoice_no'  => $sale->invoice_no,
             'receipt_url' => route('sales.receipt', $sale),
         ]);
+    }
+
+    /** JSON for the customer picker on the POS screen: ?q= matches name or phone (active customers only). */
+    public function customers(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $query = Customer::query()
+            ->where('is_active', true)
+            ->withSum('ledger as balance', 'amount');
+
+        if ($q !== '') {
+            $phone = Customer::normalizePhone($q);
+
+            $query->where(function ($w) use ($q, $phone) {
+                $w->where('name', 'like', "%{$q}%")
+                    ->orWhere('phone', 'like', "%{$phone}%");
+            });
+        }
+
+        $customers = $query->orderBy('name')->limit(15)->get()
+            ->map(fn (Customer $c) => $c->toPosArray());
+
+        return response()->json($customers);
+    }
+
+    /**
+     * "New customer" shortcut at the checkout: only the fields needed to start selling.
+     * Everything else (address, credit limit, opening balance) is edited on the Customers page.
+     */
+    public function storeCustomer(Request $request): JsonResponse
+    {
+        $request->merge([
+            'name'  => trim((string) $request->input('name')),
+            'phone' => Customer::normalizePhone((string) $request->input('phone')),
+        ]);
+
+        $data = $request->validate([
+            'name'  => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'regex:' . Customer::PHONE_REGEX, Rule::unique('customers', 'phone')],
+        ], [
+            'phone.regex'  => 'Phone number must be 11 digits and start with 03 (e.g. 03001234567).',
+            'phone.unique' => 'A customer with this phone number already exists.',
+        ]);
+
+        $customer = Customer::create($data + ['is_active' => true]);
+
+        return response()->json($customer->toPosArray(), 201);
+    }
+
+    private function canOverrideCreditLimit(Request $request): bool
+    {
+        return $request->user()->hasRole('admin', 'manager');
     }
 
     private function canSeeMargin(Request $request): bool

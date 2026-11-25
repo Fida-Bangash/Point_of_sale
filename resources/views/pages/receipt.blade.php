@@ -93,9 +93,19 @@
 			<tr><td>Exchange credit</td><td class="right">- {{ $shop->money($sale->exchange_credit) }}</td></tr>
 			<tr><td>To pay</td><td class="right">{{ $shop->money($sale->total - $sale->exchange_credit) }}</td></tr>
 			@endif
-			<tr><td>Paid ({{ $sale->paymentLabel() }})</td><td class="right">{{ $shop->money($sale->paid) }}</td></tr>
+			<tr><td>{{ $sale->payment_method === \App\Models\Sale::CREDIT_METHOD ? 'Paid now' : 'Paid (' . $sale->methodLabel() . ')' }}</td><td class="right">{{ $shop->money($sale->paid) }}</td></tr>
 			<tr><td>Change</td><td class="right">{{ $shop->money($sale->change_amount) }}</td></tr>
 		</table>
+
+		{{-- Customer account: only for a registered customer who has a balance or took credit on this bill --}}
+		@if($sale->showsAccountSummary())
+		<div class="line"></div>
+		<table>
+			<tr><td>Previous balance</td><td class="right">{{ $shop->money($sale->previous_balance) }}</td></tr>
+			<tr class="total-row"><td>Credit on this bill</td><td class="right">{{ $shop->money($sale->credit_amount) }}</td></tr>
+			<tr><td>New balance</td><td class="right">{{ $shop->money($sale->balanceAfter()) }}</td></tr>
+		</table>
+		@endif
 
 		@if($shop->receipt_footer)
 		<div class="line"></div>

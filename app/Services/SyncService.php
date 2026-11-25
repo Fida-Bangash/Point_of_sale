@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Customer;
+use App\Models\CustomerLedger;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -30,11 +32,13 @@ class SyncService
         'products'   => Product::class,
         'users'      => User::class,
         'shop_settings' => ShopSetting::class,
+        'customers'     => Customer::class,   // before sales: a sale points at its customer
         'sales'         => Sale::class,
         'sale_items'    => SaleItem::class,
         'sale_returns'      => SaleReturn::class,
         'sale_return_items' => SaleReturnItem::class,
         'exchanges'         => Exchange::class,
+        'customer_ledger'   => CustomerLedger::class, // after customers, users and sales (it references them)
     ];
 
     public const IMAGE_COLUMNS = ['products' => 'image', 'shop_settings' => 'logo'];
@@ -182,7 +186,10 @@ class SyncService
                             }
                         }
                     $res = $client()->post('push', compact('table', 'upserts', 'deletes'))->throw();
-                    $rejected = collect($res->json('rejected', []))->pluck('uuid')->filter()->all();
+                    $rejected = collect($res->json('rejected', []))
+                        ->filter(fn ($x) => ! empty($x['uuid']))
+                        ->pluck('reason', 'uuid')
+                        ->all(); // [uuid => reason]
                 } catch (\Throwable $e) {
                     DB::table('sync_queue')->whereIn('id', $items->pluck('id'))->update([
                         'tries'      => DB::raw('tries + 1'),
@@ -192,15 +199,23 @@ class SyncService
                 }
 
                 foreach ($items as $q) {
-                    if (in_array($q->uuid, $rejected, true)) {
-                        // Server ne reject kiya: dobara try nahi hoga, "failed" ginti mein aayega
-                        DB::table('sync_queue')->where('id', $q->id)
-                            ->update(['tries' => 10, 'last_error' => 'Server ne reject kiya']);
-                        continue;
-                    }
-                    DB::table('sync_queue')->where('id', $q->id)
-                        ->where('updated_at', $q->updated_at)->delete();
-                }
+    if (array_key_exists($q->uuid, $rejected)) {
+        DB::table('sync_queue')->where('id', $q->id)->update([
+            'tries'      => 10,
+            'last_error' => substr(
+                'Rejected: ' . ($rejected[$q->uuid] ?: 'Unknown reason'),
+                0,
+                250
+            ),
+        ]);
+
+        continue;
+    }
+
+    DB::table('sync_queue')->where('id', $q->id)
+        ->where('updated_at', $q->updated_at)
+        ->delete();
+}
                 $sent += $items->count();
             }
         }

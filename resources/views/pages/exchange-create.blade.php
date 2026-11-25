@@ -162,7 +162,26 @@
 								<label class="form-label" for="paid">Amount received from customer</label>
 								<input type="number" name="paid" id="paid" class="form-control" min="0" step="0.01"
 									value="{{ old('paid') }}" placeholder="Leave empty if the exact amount was paid">
+								@if($customer)
+								<div class="form-text">If he pays less, the rest is added to {{ $customer->name }}'s account (udhaar).</div>
+								@if(in_array(auth()->user()->role, ['admin', 'manager'], true))
+								<div class="form-check mt-1">
+									<input class="form-check-input" type="checkbox" name="override_credit_limit" id="override_credit_limit" value="1" @checked(old('override_credit_limit'))>
+									<label class="form-check-label" for="override_credit_limit">Allow even if it passes his credit limit</label>
+								</div>
+								@endif
+								@endif
 							</div>
+							@if($customer)
+							<div class="mb-3 d-none" id="ex-refundto-group">
+								<label class="form-label" for="refund_to">Pay the difference back as</label>
+								<select name="refund_to" id="refund_to" class="form-select">
+									<option value="cash" @selected(old('refund_to', 'cash') === 'cash')>Cash / selected method</option>
+									<option value="ledger" @selected(old('refund_to') === 'ledger')>Credit to customer account (Khata)</option>
+								</select>
+								<div class="form-text">If this bill was bought on credit, the unpaid part always goes to his account.</div>
+							</div>
+							@endif
 							<div class="mb-3">
 								<label class="form-label" for="reason">Reason</label>
 								<input type="text" name="reason" id="reason" class="form-control" maxlength="255"
@@ -367,6 +386,10 @@
 
 		// Only ask for the received amount when the customer has to pay something
 		document.getElementById('ex-paid-group').classList.toggle('d-none', !(due > 0));
+
+		// A registered customer can have the refund put on his account instead of paid out
+		var refundGroup = document.getElementById('ex-refundto-group');
+		if (refundGroup) { refundGroup.classList.toggle('d-none', !(refund > 0)); }
 	}
 
 	['input', 'change', 'keyup'].forEach(function (evt) {

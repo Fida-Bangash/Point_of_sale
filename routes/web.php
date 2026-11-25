@@ -20,6 +20,11 @@ use App\Http\Controllers\PosController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleReturnController; 
 use App\Http\Controllers\ExchangeController; 
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerPaymentController;
+use App\Http\Controllers\CustomerStatementController;
+use App\Http\Controllers\CustomerReportController;
+use App\Http\Controllers\CustomerAdjustmentController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -87,6 +92,8 @@ Route::middleware('auth')->group(function () use ($pages) {
         Route::get('/pos', [PosController::class, 'index'])->name('pos');
         Route::get('/pos/products', [PosController::class, 'products'])->name('pos.products');
         Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
+        Route::get('/pos/customers', [PosController::class, 'customers'])->name('pos.customers');
+        Route::post('/pos/customers', [PosController::class, 'storeCustomer'])->name('pos.customers.store');
 
         // Held bills (paused carts)
         Route::get('/pos/held', [HeldBillController::class, 'index'])->name('pos.held');
@@ -97,8 +104,29 @@ Route::middleware('auth')->group(function () use ($pages) {
         Route::get('/sales-list', [SaleController::class, 'index'])->name('sales-list');
         Route::get('/sales/{sale}/receipt', [SaleController::class, 'receipt'])->name('sales.receipt');
 
+        Route::get('/customers', [CustomerController::class, 'index'])->name('customers');
+        Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+        Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+        Route::get('/customers/{customer}/ledger', [CustomerController::class, 'ledger'])->name('customers.ledger');
+        Route::get('/customers/{customer}/reminder', [CustomerController::class, 'reminder'])->name('customers.reminder');
+
+        // Step 4: wasooli (customer payments)
+        Route::post('/customers/{customer}/payments', [CustomerPaymentController::class, 'store'])->name('customers.payments.store');
+        Route::get('/customers/{customer}/payments/{entry}/receipt', [CustomerPaymentController::class, 'receipt'])->name('customers.payments.receipt');
+        // Step 6: statements are read-only, so cashiers may view / print / export them
+        Route::get('/customers/{customer}/statement', [CustomerStatementController::class, 'show'])->name('customers.statement');
+        Route::get('/customers/{customer}/statement/print', [CustomerStatementController::class, 'print'])->name('customers.statement.print');
+        Route::get('/customers/{customer}/statement/csv', [CustomerStatementController::class, 'csv'])->name('customers.statement.csv');
+        // Changing a balance by hand is admin / manager only (cashiers never reach this route)
+        Route::post('/customers/{customer}/adjustments', [CustomerAdjustmentController::class, 'store'])
+            ->middleware('role:admin,manager')->name('customers.adjustments.store');
+
+        // Cancelling a payment is admin only (the group above also lets managers and cashiers in)
+        Route::post('/customers/{customer}/payments/{entry}/cancel', [CustomerPaymentController::class, 'cancel'])
+            ->middleware('role:admin')->name('customers.payments.cancel');
+
         $pages([
-            'customers', 'quotation-list',
+            'quotation-list',
         ]);
     });
 
@@ -148,6 +176,14 @@ Route::middleware('auth')->group(function () use ($pages) {
         Route::get('/sales/{sale}/return', [SaleReturnController::class, 'create'])->name('sales.return.create');
         Route::post('/sales/{sale}/return', [SaleReturnController::class, 'store'])->name('sales.return.store');
 
+        // Step 6: credit reports (cashiers can see balances and statements, not shop-wide reports)
+        Route::get('/customer-report', [CustomerReportController::class, 'overview'])->name('customer-report');
+        Route::get('/customer-report/debtors.csv', [CustomerReportController::class, 'debtorsCsv'])->name('customer-report.debtors.csv');
+        Route::get('/customer-report/aging', [CustomerReportController::class, 'aging'])->name('customer-report.aging');
+        Route::get('/customer-report/aging.csv', [CustomerReportController::class, 'agingCsv'])->name('customer-report.aging.csv');
+        Route::get('/customer-report/collections', [CustomerReportController::class, 'collections'])->name('customer-report.collections');
+        Route::get('/customer-report/collections.csv', [CustomerReportController::class, 'collectionsCsv'])->name('customer-report.collections.csv');
+
         // Exchanges: old goods back, new goods out, difference settled (cashiers cannot exchange)
         Route::get('/exchanges', [ExchangeController::class, 'index'])->name('exchanges');
         Route::get('/exchanges/{exchange}', [ExchangeController::class, 'receipt'])->name('exchanges.receipt');
@@ -157,7 +193,7 @@ Route::middleware('auth')->group(function () use ($pages) {
         $pages([
             'sales-dashboard', 'sales-report', 'purchase-report',
             'purchase-order-report', 'inventory-report', 'invoice-report',
-            'supplier-report', 'customer-report', 'expense-report',
+            'supplier-report', 'expense-report',
             'income-report', 'tax-reports', 'profit-and-loss',
             'expense-list', 'expense-category', 'coupons',
         ]);

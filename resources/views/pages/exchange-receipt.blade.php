@@ -114,14 +114,24 @@
 		<div class="line"></div>
 
 		<table>
-			@if((float) $exchange->cash_in > 0)
-				<tr class="total-row"><td>CUSTOMER PAYS</td><td class="right">{{ $shop->money($exchange->cash_in) }}</td></tr>
+			@if($exchange->totalDue() > 0)
+				<tr class="total-row"><td>CUSTOMER PAYS</td><td class="right">{{ $shop->money($exchange->totalDue()) }}</td></tr>
+				@if((float) $exchange->ledger_in > 0)
+				<tr><td>Paid now</td><td class="right">{{ $shop->money($exchange->cash_in) }}</td></tr>
+				<tr><td>Added to account</td><td class="right">{{ $shop->money($exchange->ledger_in) }}</td></tr>
+				@endif
 				@if($exchange->newSale && (float) $exchange->newSale->change_amount > 0)
 				<tr><td>Received</td><td class="right">{{ $shop->money($exchange->newSale->paid) }}</td></tr>
 				<tr><td>Change given</td><td class="right">{{ $shop->money($exchange->newSale->change_amount) }}</td></tr>
 				@endif
-			@elseif((float) $exchange->cash_out > 0)
-				<tr class="total-row"><td>REFUND TO CUSTOMER</td><td class="right">{{ $shop->money($exchange->cash_out) }}</td></tr>
+			@elseif($exchange->totalRefund() > 0)
+				<tr class="total-row"><td>REFUND TO CUSTOMER</td><td class="right">{{ $shop->money($exchange->totalRefund()) }}</td></tr>
+				@if((float) $exchange->ledger_out > 0)
+				@if((float) $exchange->cash_out > 0)
+				<tr><td>Paid out</td><td class="right">{{ $shop->money($exchange->cash_out) }}</td></tr>
+				@endif
+				<tr><td>Credited to account</td><td class="right">{{ $shop->money($exchange->ledger_out) }}</td></tr>
+				@endif
 			@else
 				<tr class="total-row"><td>EVEN EXCHANGE</td><td class="right">{{ $shop->money(0) }}</td></tr>
 			@endif

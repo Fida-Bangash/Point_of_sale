@@ -232,6 +232,12 @@
                 <td>Refunded via</td>
                 <td class="right">{{ $return->refundMethodLabel() }}</td>
             </tr>
+            @if($return->hasLedgerPart())
+            @if($return->cashAmount() > 0)
+            <tr><td>Paid out</td><td class="right">{{ $shop->money($return->cashAmount()) }}</td></tr>
+            @endif
+            <tr><td>Taken off account</td><td class="right">{{ $shop->money($return->ledger_amount) }}</td></tr>
+            @endif
         </table>
 
         @if((float) ($return->sale?->discount ?? 0) > 0)

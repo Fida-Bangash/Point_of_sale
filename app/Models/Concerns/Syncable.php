@@ -43,6 +43,10 @@ trait Syncable
 {
     $m = static::where('uuid', $row['uuid'])->first();
 
+    if ($m && defined(static::class . '::APPEND_ONLY') && static::APPEND_ONLY) {
+    return;
+    }
+
     // Migration ki default rows (jaise Unit "Box") ka uuid server se alag hota hai:
     // unhe naam se dhoondo aur server ka uuid de do
     if (! $m && defined(static::class . '::NATURAL_KEY')) {

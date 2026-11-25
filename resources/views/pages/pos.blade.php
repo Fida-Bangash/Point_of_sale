@@ -589,6 +589,93 @@
 		height: auto;
 	}
 
+	/* ---- registered customer picker ---- */
+	.pos-cust-chosen {
+		display: none;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		background: var(--pgl);
+		border-radius: 10px;
+		padding: 8px 10px;
+		font-size: 13px;
+	}
+
+	.pos-cust-chosen b {
+		display: block;
+		color: var(--pink);
+	}
+
+	.pos-cust-chosen small {
+		color: var(--pmuted);
+	}
+
+	.pos-cust-chosen .pos-owes {
+		color: var(--pred);
+		font-weight: 800;
+	}
+
+	.pos-cust-chosen button {
+		border: 0;
+		background: transparent;
+		color: var(--pred);
+		font-weight: 800;
+		font-size: 18px;
+		line-height: 1;
+	}
+
+	.pos-cust-results {
+		max-height: 190px;
+		overflow-y: auto;
+		margin: 6px 0;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.pos-cust-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+		text-align: left;
+		border: 1px solid var(--pline);
+		background: #fff;
+		border-radius: 10px;
+		padding: 8px 10px;
+		font-size: 13px;
+		color: var(--pink);
+	}
+
+	.pos-cust-row:hover {
+		border-color: var(--pg);
+		background: var(--pgl);
+	}
+
+	.pos-cust-row small {
+		color: var(--pmuted);
+		display: block;
+	}
+
+	.pos-cust-row .pos-owes {
+		color: var(--pred);
+		font-weight: 800;
+		white-space: nowrap;
+	}
+
+	.pos-warn {
+		display: none;
+		background: #fee2e2;
+		color: #991b1b;
+		border-radius: 10px;
+		padding: 8px 12px;
+		font-size: 13px;
+		font-weight: 700;
+	}
+
+	.pos-warn.pos-on {
+		display: block;
+	}
+
 	.pos-disc-row {
 		display: none;
 		justify-content: space-between;
@@ -876,9 +963,14 @@
 				</div>
 
 				<button type="button" class="pos-link pos-green" id="pos-cust-toggle" style="align-self:flex-start"><i
-						data-icon="user"></i> Customer name</button>
-				<div class="pos-cust" id="pos-cust"><input type="text" id="pos-customer" maxlength="255"
-						placeholder="Walk-in customer"></div>
+						data-icon="user"></i> <span id="pos-cust-label">Customer</span></button>
+				<div class="pos-cust-chosen" id="pos-cust-chosen"></div>
+				<div class="pos-cust" id="pos-cust">
+					<input type="text" id="pos-customer" maxlength="255" autocomplete="off"
+						placeholder="Search customer by name or phone">
+					<div class="pos-cust-results" id="pos-cust-results"></div>
+					<button type="button" class="pos-link pos-green" id="pos-cust-new">+ New customer</button>
+				</div>
 
 				<div class="pos-disc-row" id="pos-disc-row"><span>Discount</span><span id="pos-disc-val"></span></div>
 				<div class="pos-total"><span>Total</span><b id="pos-total"></b></div>
@@ -887,8 +979,8 @@
 					<button type="button" class="pos-pbtn" id="pos-pay-card">Card</button>
 					<button type="button" class="pos-pbtn" id="pos-pay-wallet">Wallet</button>
 					<button type="button" class="pos-pbtn" id="pos-pay-more">More</button>
-					<button type="button" class="pos-pbtn" disabled
-						title="Needs the customers module (coming later)">Credit</button>
+					<button type="button" class="pos-pbtn" id="pos-pay-credit"
+						title="Sell on credit (udhaar) to a registered customer">Credit</button>
 					<div class="pos-wallet-pop" id="pos-wallet-pop">
 						<button type="button" data-m="easypaisa">Easypaisa</button>
 						<button type="button" data-m="jazzcash">JazzCash</button>
@@ -916,16 +1008,34 @@
 					step="any"></div>
 		</div>
 		<div class="pos-two">
-			<div><label for="pos-m-received">Amount received</label><input type="number" id="pos-m-received" min="0"
+			<div><label for="pos-m-received">Paid now</label><input type="number" id="pos-m-received" min="0"
 					step="any" placeholder="Exact"></div>
-			<div><label for="pos-m-customer">Customer name</label><input type="text" id="pos-m-customer"
-					maxlength="255"></div>
+			<div id="pos-m-walkin"><label for="pos-m-customer">Walk-in name (optional)</label><input type="text"
+					id="pos-m-customer" maxlength="255"></div>
 		</div>
 		<div class="pos-sum"><span>Total</span><span id="pos-m-total"></span></div>
 		<div class="pos-sum"><span>Change</span><span id="pos-m-change"></span></div>
+		<div class="pos-sum" id="pos-m-credit-row" style="display:none"><span>On credit (udhaar)</span><span id="pos-m-credit"></span></div>
+		<div class="pos-sum" id="pos-m-bal-row" style="display:none"><span>Customer balance after</span><span id="pos-m-bal"></span></div>
+		<div class="pos-warn" id="pos-m-warn"></div>
 		<div class="pos-btns">
 			<button type="button" class="pos-no" id="pos-m-cancel">Close</button>
 			<button type="button" class="pos-ok" id="pos-m-ok">Complete sale</button>
+		</div>
+	</div>
+</div>
+
+{{-- ===== "New customer" popup ===== --}}
+<div class="pos-mask" id="pos-nc-mask">
+	<div class="pos-modal">
+		<h3>New customer</h3>
+		<div><label for="pos-nc-name">Name</label><input type="text" id="pos-nc-name" maxlength="255"></div>
+		<div><label for="pos-nc-phone">Phone</label><input type="text" id="pos-nc-phone" maxlength="20"
+				placeholder="03001234567" inputmode="tel"></div>
+		<div class="pos-warn" id="pos-nc-err"></div>
+		<div class="pos-btns">
+			<button type="button" class="pos-no" id="pos-nc-cancel">Close</button>
+			<button type="button" class="pos-ok" id="pos-nc-ok">Save customer</button>
 		</div>
 	</div>
 </div>
@@ -939,6 +1049,8 @@
 		const METHODS = @json($methods);
 		const PRODUCTS_URL = @json(route('pos.products'));
 		const CHECKOUT_URL = @json(route('pos.checkout'));
+		const CUSTOMERS_URL = @json(route('pos.customers'));
+		const CAN_OVERRIDE_LIMIT = @json($canOverrideCreditLimit);
 		const HELD_URL = @json(route('pos.held'));
 		const HELD_BASE = @json(url('/pos/held'));
 
@@ -979,7 +1091,8 @@
 		let query = '';
 		let view = 'grid';
 		let cart = [];        // { id, name, price, stock, qty }
-		let customer = '';
+		let customer = '';      // walk-in name, or the name of the selected customer
+		let selected = null;    // registered customer: { id, name, phone, balance, credit_limit }
 		let discount = 0;
 		let held = [];          // held bills from the server
 		let activeHeld = null;  // uuid of the held bill that is open in the cart
@@ -1187,6 +1300,98 @@
 			$('disc-val').textContent = '- ' + money(t.discount);
 		}
 
+		// ---- registered customer ----
+		function balanceText(c) {
+			if (c.balance > 0) return 'Owes ' + money(c.balance);
+			if (c.balance < 0) return 'Advance ' + money(-c.balance);
+			return 'No balance';
+		}
+
+		function renderCustomer() {
+			const box = $('cust-chosen');
+			box.innerHTML = '';
+			$('cust-label').textContent = selected ? 'Change customer' : 'Customer';
+			box.style.display = selected ? 'flex' : 'none';
+			if (!selected) return;
+
+			const info = h('div');
+			info.appendChild(h('b', null, selected.name));
+			const sub = h('small', null, selected.phone + ' · ');
+			sub.appendChild(h('span', selected.balance > 0 ? 'pos-owes' : null, balanceText(selected)));
+			if (selected.credit_limit != null) sub.appendChild(document.createTextNode(' · limit ' + money(selected.credit_limit)));
+			info.appendChild(sub);
+
+			const x = h('button', null, '×');
+			x.type = 'button';
+			x.title = 'Remove customer';
+			x.addEventListener('click', clearCustomer);
+			box.append(info, x);
+		}
+
+		function selectCustomer(c) {
+			selected = c;
+			customer = c.name;
+			$('customer').value = '';
+			$('cust').classList.remove('pos-open');
+			showErr('');
+			renderCustomer();
+		}
+
+		function clearCustomer() {
+			selected = null;
+			customer = '';
+			renderCustomer();
+		}
+
+		let custToken = 0;
+		async function searchCustomers() {
+			const token = ++custToken;
+			const box = $('cust-results');
+			let rows = [];
+			try {
+				rows = await api('GET', CUSTOMERS_URL + '?' + new URLSearchParams({ q: $('customer').value.trim() }));
+			} catch (e) { rows = []; }
+			if (token !== custToken) return; // a newer search is already running
+
+			box.innerHTML = '';
+			if (!rows.length) {
+				box.appendChild(h('small', null, 'No customer found.'));
+				return;
+			}
+			rows.forEach((c) => {
+				const row = h('button', 'pos-cust-row');
+				row.type = 'button';
+				const left = h('span');
+				left.appendChild(document.createTextNode(c.name));
+				left.appendChild(h('small', null, c.phone));
+				row.appendChild(left);
+				if (c.balance !== 0) row.appendChild(h('span', c.balance > 0 ? 'pos-owes' : null, balanceText(c)));
+				row.addEventListener('click', () => selectCustomer(c));
+				box.appendChild(row);
+			});
+		}
+
+		function openNewCustomer() {
+			$('nc-name').value = $('customer').value.trim();
+			$('nc-phone').value = '';
+			$('nc-err').classList.remove('pos-on');
+			$('nc-mask').classList.add('pos-open');
+			$('nc-name').focus();
+		}
+
+		async function saveNewCustomer() {
+			const err = $('nc-err');
+			err.classList.remove('pos-on');
+			try {
+				const c = await api('POST', CUSTOMERS_URL, { name: $('nc-name').value, phone: $('nc-phone').value });
+				$('nc-mask').classList.remove('pos-open');
+				selectCustomer(c);
+			} catch (e) {
+				err.textContent = e.message;
+				err.classList.add('pos-on');
+			}
+		}
+
 		function renderHeld() {
 			const box = $('held');
 			box.innerHTML = '';
@@ -1235,6 +1440,7 @@
 				await api('POST', HELD_URL, {
 					items: cart.map((l) => ({ product_id: l.id, quantity: l.qty })),
 					discount: totals().discount,
+					customer_id: selected ? selected.id : null,
 					customer_name: customer || null,
 					replace_uuid: activeHeld,
 				});
@@ -1258,10 +1464,11 @@
 			try {
 				const bill = await api('GET', HELD_BASE + '/' + uuid);
 				cart = bill.items.map((l) => ({ id: l.id, name: l.name, price: l.price, stock: l.stock, qty: l.qty }));
+				selected = bill.customer || null;
 				customer = bill.customer_name || '';
 				discount = bill.discount || 0;
 				activeHeld = bill.uuid;
-				$('customer').value = customer;
+				renderCustomer();
 				renderHeld();
 				renderAll();
 				if (bill.warnings.length) showErr('Please check: ' + bill.warnings.join(' '));
@@ -1275,15 +1482,17 @@
 			cart = [];
 			activeHeld = null;
 			customer = '';
+			selected = null;
 			discount = 0;
 			$('customer').value = '';
+			renderCustomer();
 			showErr('');
 			renderAll();
 		}
 
 		// ---- payment ----
 		function setBusy(on) {
-			['pay-card', 'pay-wallet', 'pay-more', 'pay-cash', 'pay-print', 'm-ok'].forEach((id) => { $(id).disabled = on; });
+			['pay-card', 'pay-wallet', 'pay-more', 'pay-credit', 'pay-cash', 'pay-print', 'm-ok'].forEach((id) => { $(id).disabled = on; });
 		}
 
 		async function pay(method, opts) {
@@ -1291,8 +1500,17 @@
 			showErr('');
 			const t = totals();
 			if (!cart.length) { closeMore(); showErr('The cart is empty.'); return; }
-			const received = opts.received != null ? opts.received : t.total;
-			if (received < t.total) { showErr('Amount received is less than the total.'); return; }
+			// "Credit" with no amount typed means nothing is paid now; every other method defaults to the exact total
+			const received = opts.received != null ? opts.received : (method === 'credit' ? 0 : t.total);
+			const onCredit = round2(Math.max(t.total - received, 0));
+
+			if (method === 'credit' && onCredit <= 0) { showErr('Nothing is left on credit. Choose another payment method.'); return; }
+			if (onCredit > 0 && !selected) {
+				closeMore();
+				showErr('Select a registered customer to sell on credit.');
+				$('cust').classList.add('pos-open');
+				return;
+			}
 
 			setBusy(true);
 			try {
@@ -1304,7 +1522,9 @@
 						discount: t.discount,
 						paid: received,
 						payment_method: method,
+						customer_id: selected ? selected.id : null,
 						customer_name: customer || null,
+						override_credit_limit: !!opts.override,
 						held_uuid: activeHeld,
 					}),
 				});
@@ -1312,8 +1532,18 @@
 				if (!res.ok) {
 					const first = data.errors ? Object.values(data.errors)[0][0] : data.message;
 					closeMore();
-					showErr(first || 'Could not complete the sale.');
 					setBusy(false);
+
+					// Over the credit limit: admin/manager may override, everyone else must stop here
+					if (data.errors && data.errors.credit_limit) {
+						if (CAN_OVERRIDE_LIMIT && confirm(first + '\n\nOverride the credit limit and complete this sale?')) {
+							return pay(method, Object.assign({}, opts, { received: received, override: true }));
+						}
+						showErr(first + (CAN_OVERRIDE_LIMIT ? '' : ' A manager or admin must approve this sale.'));
+						return;
+					}
+
+					showErr(first || 'Could not complete the sale.');
 					load(); // stock may have changed
 					return;
 				}
@@ -1325,7 +1555,7 @@
 		}
 
 		// ---- "More" popup ----
-		function openMore() {
+		function openMore(preferredMethod) {
 			if (!cart.length) { showErr('The cart is empty.'); return; }
 			const sel = $('m-method');
 			sel.innerHTML = '';
@@ -1335,9 +1565,11 @@
 				o.textContent = METHODS[k];
 				sel.appendChild(o);
 			});
+			if (preferredMethod && METHODS[preferredMethod]) sel.value = preferredMethod;
 			$('m-discount').value = discount || '';
 			$('m-received').value = '';
-			$('m-customer').value = customer;
+			$('m-customer').value = selected ? '' : customer;
+			$('m-walkin').style.display = selected ? 'none' : '';
 			updateMore();
 			$('mask').classList.add('pos-open');
 			$('m-received').focus();
@@ -1347,9 +1579,32 @@
 			const sub = totals().subtotal;
 			const disc = Math.min(Math.max(parseFloat($('m-discount').value) || 0, 0), sub);
 			const total = round2(sub - disc);
-			const recv = parseFloat($('m-received').value);
+			const typed = parseFloat($('m-received').value);
+			const isCredit = $('m-method').value === 'credit';
+			// Blank means "exact total", except for the Credit method where blank means "nothing paid now"
+			const recv = isNaN(typed) ? (isCredit ? 0 : total) : typed;
+			const onCredit = round2(Math.max(total - recv, 0));
+
+			$('m-received').placeholder = isCredit ? '0 (all on credit)' : 'Exact';
 			$('m-total').textContent = money(total);
-			$('m-change').textContent = money(isNaN(recv) ? 0 : Math.max(round2(recv - total), 0));
+			$('m-change').textContent = money(Math.max(round2(recv - total), 0));
+
+			$('m-credit-row').style.display = onCredit > 0 ? 'flex' : 'none';
+			$('m-credit').textContent = money(onCredit);
+
+			const showBal = onCredit > 0 && selected;
+			$('m-bal-row').style.display = showBal ? 'flex' : 'none';
+			if (showBal) $('m-bal').textContent = money(round2(selected.balance + onCredit));
+
+			let warn = '';
+			if (onCredit > 0 && !selected) {
+				warn = 'Select a registered customer to sell on credit.';
+			} else if (onCredit > 0 && selected.credit_limit != null && round2(selected.balance + onCredit) > selected.credit_limit) {
+				warn = 'This sale takes ' + selected.name + ' over the credit limit of ' + money(selected.credit_limit) + '. '
+					+ (CAN_OVERRIDE_LIMIT ? 'You will be asked to confirm the override.' : 'A manager or admin must approve it.');
+			}
+			$('m-warn').textContent = warn;
+			$('m-warn').classList.toggle('pos-on', warn !== '');
 		}
 
 		// ---- events ----
@@ -1399,8 +1654,16 @@
 			if (cart.length && !confirm('Clear the whole cart?')) return;
 			resetSale();
 		});
-		$('cust-toggle').addEventListener('click', () => { $('cust').classList.toggle('pos-open'); $('customer').focus(); });
-		$('customer').addEventListener('input', (e) => { customer = e.target.value.trim(); });
+		$('cust-toggle').addEventListener('click', () => {
+			$('cust').classList.toggle('pos-open');
+			if ($('cust').classList.contains('pos-open')) { $('customer').focus(); searchCustomers(); }
+		});
+		let custTimer;
+		$('customer').addEventListener('input', () => { clearTimeout(custTimer); custTimer = setTimeout(searchCustomers, 200); });
+		$('cust-new').addEventListener('click', openNewCustomer);
+		$('nc-ok').addEventListener('click', saveNewCustomer);
+		$('nc-cancel').addEventListener('click', () => $('nc-mask').classList.remove('pos-open'));
+		$('nc-phone').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveNewCustomer(); } });
 
 		$('pay-cash').addEventListener('click', () => pay('cash'));
 		$('pay-card').addEventListener('click', () => pay('card'));
@@ -1412,14 +1675,25 @@
 		});
 		document.addEventListener('click', () => $('wallet-pop').classList.remove('pos-open'));
 
-		$('pay-more').addEventListener('click', openMore);
+		$('pay-more').addEventListener('click', () => openMore());
+		$('pay-credit').addEventListener('click', () => {
+			if (!cart.length) { showErr('The cart is empty.'); return; }
+			if (!selected) {
+				showErr('Select a registered customer first to sell on credit.');
+				$('cust').classList.add('pos-open');
+				$('customer').focus();
+				searchCustomers();
+				return;
+			}
+			openMore('credit');
+		});
 		$('m-cancel').addEventListener('click', closeMore);
 		$('m-discount').addEventListener('input', updateMore);
 		$('m-received').addEventListener('input', updateMore);
+		$('m-method').addEventListener('change', updateMore);
 		$('m-ok').addEventListener('click', () => {
 			discount = Math.max(parseFloat($('m-discount').value) || 0, 0);
-			customer = $('m-customer').value.trim();
-			$('customer').value = customer;
+			if (!selected) customer = $('m-customer').value.trim();
 			renderCart();
 			const recv = parseFloat($('m-received').value);
 			pay($('m-method').value, { received: isNaN(recv) ? null : recv });
@@ -1428,10 +1702,11 @@
 		document.addEventListener('keydown', (e) => {
 			if (e.key === 'F2') { e.preventDefault(); $('search').focus(); $('search').select(); }
 			else if (e.key === 'F9') { e.preventDefault(); pay('cash'); }
-			else if (e.key === 'Escape') { closeMore(); }
+			else if (e.key === 'Escape') { closeMore(); $('nc-mask').classList.remove('pos-open'); }
 		});
 
 		loadHeld();
+		renderCustomer();
 		renderCart();
 		load();
 		window.addEventListener('focus', loadHeld);

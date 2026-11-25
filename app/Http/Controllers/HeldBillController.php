@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\HeldBill;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
@@ -44,6 +45,7 @@ class HeldBillController extends Controller
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'items.*.quantity'   => ['required', 'numeric', 'gt:0', 'max:99999'],
             'discount'           => ['nullable', 'numeric', 'min:0'],
+            'customer_id'        => ['nullable', 'integer', 'exists:customers,id'],
             'customer_name'      => ['nullable', 'string', 'max:255'],
             'replace_uuid'       => ['nullable', 'uuid'],
         ]);
@@ -93,10 +95,14 @@ class HeldBillController extends Controller
             $subtotal = round($subtotal, 2);
             $discount = min(round((float) ($data['discount'] ?? 0), 2), $subtotal);
 
+            // A registered customer is stored by id; the name is kept only for the chip label
+            $customer = filled($data['customer_id'] ?? null) ? Customer::find($data['customer_id']) : null;
+
             return HeldBill::create([
                 'uuid'          => (string) Str::uuid(),
                 'user_id'       => $user->id,
-                'customer_name' => $data['customer_name'] ?? null,
+                'customer_id'   => $customer?->id,
+                'customer_name' => $customer?->name ?? ($data['customer_name'] ?? null),
                 'discount'      => $discount,
                 'total'         => round($subtotal - $discount, 2),
                 'items'         => $items,
@@ -154,9 +160,19 @@ class HeldBillController extends Controller
             ];
         }
 
+        // Re-read the customer: the balance (and the active flag) may have changed since the bill was held
+        $customer = $bill->customer_id ? Customer::find($bill->customer_id) : null;
+
+        if ($bill->customer_id && ! $customer) {
+            $warnings[] = 'The customer of this bill no longer exists.';
+        } elseif ($customer && ! $customer->is_active) {
+            $warnings[] = "Customer \"{$customer->name}\" is inactive. Credit sales are not allowed for this customer.";
+        }
+
         return response()->json([
             'uuid'          => $bill->uuid,
-            'customer_name' => $bill->customer_name,
+            'customer'      => $customer?->toPosArray(),
+            'customer_name' => $customer ? $customer->name : $bill->customer_name,
             'discount'      => (float) $bill->discount,
             'items'         => $lines,
             'warnings'      => $warnings,

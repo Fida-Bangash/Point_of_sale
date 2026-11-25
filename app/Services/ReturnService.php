@@ -13,6 +13,13 @@ use Illuminate\Validation\ValidationException;
 
 class ReturnService
 {
+    /** Refund method: take the money off the customer's account (khata) instead of paying it out. */
+    public const REFUND_LEDGER = 'ledger';
+
+    public function __construct(private readonly LedgerService $ledger)
+    {
+    }
+
     /**
      * Return (part of) a sale: record the return, put the goods back on the
      * shelf and work out the money to hand back, all in one transaction.
@@ -23,6 +30,13 @@ class ReturnService
      *  - the refund uses the price the customer really paid (original unit
      *    price minus its share of the bill discount), never today's price;
      *  - stock goes up only for lines flagged "restock" and whose product still exists.
+     *
+     * Credit sales (udhaar): a customer who bought on credit has not paid for everything, so not
+     * everything can be handed back as cash. The refund is split in two:
+     *   - `ledger`: taken off the customer's account (a `return_credit` ledger entry), and
+     *   - cash (or any normal method): only up to what the customer really paid for the sale.
+     * Choosing the refund method `ledger` sends the whole refund to the account. For a cash refund of
+     * a credit sale the unpaid part goes to the account automatically. See splitRefund().
      *
      * @param  array{items: array<int, array{sale_item_id:int, quantity:float|int|string|null, restock?:mixed}>, refund_method?:?string, reason?:?string, note?:?string}  $data
      */
@@ -77,14 +91,22 @@ class ReturnService
                 ];
             }
 
-            $total = $this->clampToSale($sale, $rows);
+            $total  = $this->clampToSale($sale, $rows);
+            $method = $this->resolveMethod($sale, $data['refund_method'] ?? null);
+
+            // An exchange settles its money later (settle()), once the value of the new goods is known
+            $split = $method === 'exchange'
+                ? ['ledger' => 0.0, 'cash' => 0.0, 'exchange' => 0.0]
+                : $this->splitRefund($sale, $total, $method);
 
             $return = SaleReturn::create([
-                'return_no'     => $this->nextReturnNo(),
-                'sale_id'       => $sale->id,
-                'user_id'       => $userId,
-                'refund_total'  => $total,
-                'refund_method' => ($data['refund_method'] ?? null) ?: $sale->payment_method,
+                'return_no'       => $this->nextReturnNo(),
+                'sale_id'         => $sale->id,
+                'user_id'         => $userId,
+                'refund_total'    => $total,
+                'ledger_amount'   => $split['ledger'],
+                'exchange_amount' => 0,
+                'refund_method'   => $method,
                 'reason'        => $data['reason'] ?? null,
                 'note'          => $data['note'] ?? null,
                 'returned_at'   => now(),
@@ -123,6 +145,9 @@ class ReturnService
 
             $sale->status = $this->resolveStatus($sale);
             $sale->save();
+
+            // The ledger entry is written in the same transaction as the return itself
+            $this->creditLedger($sale, $return, $split['ledger'], $userId);
 
             return $return->load('items');
         });
@@ -169,6 +194,111 @@ class ReturnService
     public function netUnitPrice(array $state): float
     {
         return $state['sold'] > 0 ? round($state['net_line'] / $state['sold'], 4) : 0.0;
+    }
+
+    /**
+     * Split the money of a return into ledger / cash / exchange credit. Writes nothing.
+     *
+     * `$applied` is the part of the return that pays for new goods in an exchange (0 for a plain
+     * return). `$exceptReturnId` leaves one return out of the "already refunded" maths: the
+     * exchange calls this after its return was created.
+     *
+     *   - method `ledger`        -> everything that is not exchange credit goes to the account
+     *   - any other method       -> cash up to what the customer really paid in cash for the sale
+     *                               (total - credit_amount) minus what earlier returns and this
+     *                               exchange already used of it; the rest goes to the account
+     *
+     * A sale without credit has total - credit_amount = total, so its cash part is never reduced
+     * and nothing changes for ordinary customers.
+     *
+     * @return array{ledger: float, cash: float, exchange: float}
+     */
+    public function splitRefund(Sale $sale, float $total, string $method, float $applied = 0.0, ?int $exceptReturnId = null): array
+    {
+        $applied = round(min(max($applied, 0.0), $total), 2);
+        $rest    = round($total - $applied, 2);
+
+        if ($rest <= 0) {
+            return ['ledger' => 0.0, 'cash' => 0.0, 'exchange' => $applied];
+        }
+
+        if ($method === self::REFUND_LEDGER) {
+            $ledger = $rest;
+        } else {
+            $prior = fn () => $sale->returns()->when($exceptReturnId, fn ($q) => $q->where('id', '!=', $exceptReturnId));
+
+            $paidInCash = max(0.0, round((float) $sale->total - (float) $sale->credit_amount, 2));
+            $alreadyOut = round((float) $prior()->sum('refund_total') - (float) $prior()->sum('ledger_amount'), 2);
+            $ceiling    = max(0.0, round($paidInCash - $alreadyOut - $applied, 2));
+
+            $ledger = round(max($rest - $ceiling, 0.0), 2);
+        }
+
+        if ($ledger > 0 && $sale->customer_id === null) {
+            throw ValidationException::withMessages([
+                'refund_method' => 'This sale has no registered customer, so the refund cannot go to a customer account. Refund it in cash instead.',
+            ]);
+        }
+
+        return ['ledger' => $ledger, 'cash' => round($rest - $ledger, 2), 'exchange' => $applied];
+    }
+
+    /**
+     * Used by ExchangeService once it knows how much of the returned value pays for the new goods.
+     * Writes the ledger part on the return, plus its ledger entry.
+     *
+     * @return array{ledger: float, cash: float, exchange: float}
+     */
+    public function settle(SaleReturn $return, Sale $sale, float $applied, string $refundTo, ?int $userId): array
+    {
+        $split = $this->splitRefund(
+            $sale, (float) $return->refund_total,
+            $refundTo === self::REFUND_LEDGER ? self::REFUND_LEDGER : 'cash',
+            $applied, $return->id,
+        );
+
+        $return->ledger_amount   = $split['ledger'];
+        $return->exchange_amount = round((float) $return->refund_total - $split['ledger'], 2);
+        $return->save();
+
+        $this->creditLedger($sale, $return, $split['ledger'], $userId);
+
+        return $split;
+    }
+
+    private function creditLedger(Sale $sale, SaleReturn $return, float $amount, ?int $userId): void
+    {
+        if ($amount <= 0 || $sale->customer_id === null) {
+            return;
+        }
+
+        $this->ledger->returnCredit(
+            $sale->customer()->firstOrFail(),
+            $amount,
+            'sale_return',
+            $return->uuid,
+            "Return {$return->return_no} of invoice {$sale->invoice_no}",
+            $userId,
+        );
+    }
+
+    /**
+     * Pick the refund method. Nothing chosen: pay back the way the customer paid. A credit sale was
+     * not "paid" by any real method, so its default is the customer's account.
+     */
+    private function resolveMethod(Sale $sale, ?string $chosen): string
+    {
+        $method = $chosen ?: $sale->payment_method;
+
+        if ($method === 'exchange' || $method === self::REFUND_LEDGER) {
+            return $method;
+        }
+
+        if (! array_key_exists($method, Sale::PAYMENT_METHODS)) {
+            return $sale->customer_id !== null ? self::REFUND_LEDGER : 'cash';
+        }
+
+        return $method;
     }
 
     private function assertReturnable(Sale $sale): void
